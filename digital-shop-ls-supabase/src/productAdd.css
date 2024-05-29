@@ -1,0 +1,16 @@
+.field-area {
+    flex: 1 50%;
+    padding: 20px 10px 0 10px;
+    text-align: left;
+  }
+  
+  .save-btn {
+    margin: 20px 0;
+    font-size: 1.2em;
+  }
+  
+  .product-desc {
+    font-size: 1.2em;
+    margin: 20px 0;
+    display: inline-block;
+  }
