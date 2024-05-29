@@ -1,0 +1,227 @@
+import '@syncfusion/ej2-layouts/styles/material.css';
+import '@syncfusion/ej2-react-inputs/styles/material.css';
+import '@syncfusion/ej2-react-buttons/styles/material.css';
+import '../src/App.css';
+import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
+import { useState, useCallback, useEffect } from 'react';
+import { debounce } from 'lodash';
+import Toast from '../components/toast';
+import { Link, useNavigate } from 'react-router-dom';
+import useAuth from '../hooks/auth';
+
+const Signup = () => {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [repassword, setRepassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [invalidEmail, setInvalidEmail] = useState(false);
+  const [passwordMatching, setPasswordMatching] = useState(true);
+  const [toast, setToast] = useState({
+    show: false,
+    message: '',
+    type: 'error',
+  });
+  const { signup, signupData } = useAuth();
+
+  // helper function that checks email using regex
+  const isValidEmail = (email) => {
+    return /\S+@\S+\.\S+/.test(email);
+  };
+
+  function isPasswordValid(password) {
+    // Check if password is alphanumeric and has a minimum length of 6
+    return /^[a-z0-9]{6,}$/i.test(password);
+  }
+
+  // function to validate email
+  const validateEmail = useCallback((text) => {
+    const debounced = debounce(() => {
+      if (!!text && !isValidEmail(text)) {
+        setInvalidEmail(true);
+      } else {
+        setInvalidEmail(false);
+      }
+    }, 1000);
+    debounced();
+  }, []);
+
+  const handleEmailChange = useCallback((text) => {
+    setEmail(text);
+    const debounced = debounce(() => {
+      const isValid = isValidEmail(text);
+      setInvalidEmail(!isValid);
+    }, 1000);
+    debounced();
+  }, []);
+
+  useEffect(() => {
+    validateEmail(email);
+  }, [email, validateEmail]);
+
+  // monitor change of re-entered password
+  useEffect(() => {
+    // if both the passwords mismatch, update the state to show error
+    if (password && repassword && password !== repassword) {
+      setPasswordMatching(false);
+    } else {
+      setPasswordMatching(true);
+    }
+  }, [repassword, password]);
+
+  // on signup
+  const handleSubmit = () => {
+    // if the required fields are empty
+    if (!firstName || !lastName || !email || !password) {
+      // show toast message
+      setToast({
+        message: 'Required fields are missing',
+        show: true,
+        type: 'error',
+      });
+    } else if (!isPasswordValid(password)) {
+      // show toast message
+      setToast({
+        message: 'Password must be alphanumeric and have a minimum length of 6',
+        show: true,
+        type: 'error',
+      });
+    } else {
+      // initiate signup
+      signup(email, password, firstName, lastName);
+    }
+  };
+
+  // monitor the change in data after signup
+  useEffect(() => {
+    // if user is successfully authenticated
+    if (signupData?.user?.role === 'authenticated') {
+      // show toast message
+      setToast({
+        message: 'Successfully signed up',
+        show: true,
+        type: 'success',
+      });
+
+      // and redirect to the login page
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
+    }
+  }, [signupData, navigate]);
+
+  return (
+    <div className="e-card login-container">
+      <h1 className="text-center">Welcome to HKS Digital Shop</h1>
+      <h2 className="text-center">Signup to sell any digital product</h2>
+      <div className="field-area">
+        <label htmlFor="first-name">First Name *</label>
+        <input
+          className="e-input"
+          type="text"
+          placeholder="Your first name..."
+          name="first-name"
+          id="first-name"
+          onChange={(e) => setFirstName(e.target.value)}
+          value={firstName}
+          required
+        />
+      </div>
+      <div className="field-area">
+        <label htmlFor="last-name">Last Name *</label>
+        <input
+          className="e-input"
+          type="text"
+          placeholder="Your last name..."
+          name="last-name"
+          id="last-name"
+          onChange={(e) => setLastName(e.target.value)}
+          value={lastName}
+          required
+        />
+      </div>
+      <div className="field-area">
+        <label htmlFor="email">Email *</label>
+        <input
+          className="e-input"
+          type="email"
+          placeholder="Your email..."
+          name="email"
+          id="email"
+          onChange={(e) => handleEmailChange(e.target.value)}
+          value={email}
+          required
+        />
+        {invalidEmail && (
+          <p className="error">Please enter a valid email address</p>
+        )}
+      </div>
+      <div className="field-area">
+        <label htmlFor="password">Password *</label>
+        <input
+          className="e-input"
+          type="password"
+          placeholder="Your password..."
+          name="password"
+          id="password"
+          onChange={(e) => setPassword(e.target.value)}
+          value={password}
+          required
+        />
+      </div>
+      <div className="field-area">
+        <label htmlFor="re-password">Re-enter Password *</label>
+        <input
+          className="e-input"
+          type="password"
+          placeholder="Re-enter your password..."
+          name="re-password"
+          id="re-password"
+          onChange={(e) => setRepassword(e.target.value)}
+          value={repassword}
+          required
+          disabled={!password}
+        />
+      </div>
+      {repassword && !passwordMatching && (
+        <span className="text-center" style={{ color: 'red' }}>
+          Entered passwords does not match
+        </span>
+      )}
+      <div
+        style={{
+          width: '120px',
+          margin: '20px auto 0 auto',
+        }}
+      >
+        <ButtonComponent
+          cssClass="e-success e-block"
+          type="submit"
+          onClick={handleSubmit}
+          style={{ fontSize: '1.2em' }}
+        >
+          Signup
+        </ButtonComponent>
+      </div>
+      {toast.show && (
+        <Toast
+          errorMessage={toast.message}
+          type={toast.type}
+          onClose={() => {
+            setToast({
+              show: false,
+              message: '',
+              type: 'error',
+            });
+          }}
+        />
+      )}
+      <span className="text-center" style={{ marginTop: '1em' }}>
+        Already have an account? <Link to="/login">login</Link>
+      </span>
+    </div>
+  );
+};
+
+export default Signup;

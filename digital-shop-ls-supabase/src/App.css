@@ -1,0 +1,91 @@
+#root {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 1rem;
+  text-align: center;
+  transform: translateY(-5rem);
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+/* Card Content Styles */
+.e-card .e-card-content {
+  font-size: 20px;
+  line-height: normal;
+  padding: 12px;
+  word-wrap: break-word;
+  color: rgba(20, 5, 48, 0.54);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: rgb(168, 245, 173);
+  border-color: rgb(98, 7, 236);
+}
+
+/* Grid Container Styles */
+.input-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  height: 200px;
+}
+.input-container input {
+  width: 300px;
+  height: 100%; /* Set the height of the input fields to 100% */
+  font-weight: bold;
+  border-radius: 5px;
+  border-color: rgb(227, 243, 85);
+}
+
+.e-card .e-card-header .e-card-header-caption .e-card-sub-title {
+  font-weight: bold !important;
+  color: rgba(14, 2, 36, 0.54);
+  font-size: 18px !important;
+}
+
+.e-card-title {
+  font-weight: bold !important;
+  color: rgba(14, 2, 36, 0.54);
+  font-size: 25px;
+}
+
+.e-card-sub-title {
+  margin-right: 8px;
+}

@@ -1,0 +1,15 @@
+src/
+├── components/
+│   ├── Wrapper.js
+│   ├── Dashboard.js
+├── pages/
+│   ├── login.js
+│   ├── signup.js
+│   ├── dashboard.js
+├── routes/
+│   ├── private.js
+│   ├── public.js
+├── App.js
+├── index.js
+├── wrapper.css
+└── ...

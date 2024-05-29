@@ -1,0 +1,96 @@
+* {
+    box-sizing: border-box;
+  }
+  
+  .wrapper header {
+    padding: 20px 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.5);
+    max-width: calc(100% - 40px);
+    margin: 10px auto 0 auto;
+  }
+  
+  .wrapper .title {
+    font-size: 1.5em;
+    text-decoration: none;
+    color: #000;
+    font-weight: bold;
+  }
+  
+  .wrapper main {
+    display: flex;
+    align-items: stretch;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    padding: 20px;
+  }
+  
+  .wrapper .sidebar {
+    flex: 0 250px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between !important;
+    position: relative;
+    height: auto;
+  }
+  
+  .wrapper .username {
+    font-size: 18px;
+    font-weight: bold;
+  }
+  
+  .wrapper section {
+    flex: 1;
+    height: calc(100vh - 120px);
+    margin-left: 20px !important;
+    padding: 10px;
+  }
+  
+  .wrapper .menu {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 0;
+    flex-wrap: wrap;
+  }
+  
+  .wrapper .menu > li {
+    flex: 0 100%;
+    list-style-type: none;
+  }
+  
+  .wrapper .menu > li > a {
+    text-align: center;
+    padding: 10px;
+    display: block;
+    text-decoration: none;
+    font-size: 1.2em;
+    color: #000;
+    background: #eee;
+    border-bottom: 1px solid #f7f7f7;
+    transition: all 0.2s ease;
+  }
+  
+  .wrapper .menu > li > a.active {
+    background-color: #3f3c3c;
+    color: #fff;
+  }
+  
+  .wrapper .menu > li > a:hover {
+    background-color: #3f3c3c;
+    color: #fff;
+  }
+  
+  .e-card,
+  .e-card:hover {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.5);
+  }
+  
+  .e-card {
+    justify-content: unset;
+  }
+  

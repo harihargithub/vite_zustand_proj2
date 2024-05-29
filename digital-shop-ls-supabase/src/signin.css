@@ -1,0 +1,41 @@
+.e-card {
+  border-radius: 2px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Roboto', 'Segoe UI', 'GeezaPro', 'DejaVu Serif', 'sans-serif',
+    '-apple-system', 'BlinkMacSystemFont';
+  font-size: 15px;
+  justify-content: center;
+  min-height: 36px;
+  overflow: hidden;
+  position: relative;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  width: 100%; /* Adjust the width of the card */
+  margin-left: 3%; /* Adjust the left margin of the card */
+  background: rgb(157, 246, 246); /* Set the background color to aqua */
+  box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.16);
+  color: rgba(0, 0, 0, 0.87);
+  outline: none;
+  padding: 5px;
+}
+
+.e-card.login-container {
+  width: 300px; /* Adjust the width of the card */
+}
+
+input.e-input,
+.e-input-group input.e-input {
+  padding-left: 10px; /* Adjust the left padding of the input */
+  text-indent: 0;
+  font-family: 'Roboto', 'Segoe UI', 'GeezaPro', 'DejaVu Serif', 'sans-serif',
+    '-apple-system', 'BlinkMacSystemFont';
+  font-weight: bolder !important; /* Make the input text bold */
+  min-height: 40px;
+}
+
+h1 {
+  font-size: large !important; /* Adjust the font size of h1 */
+  line-height: 1.1;
+}
