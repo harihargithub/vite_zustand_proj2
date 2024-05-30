@@ -12,6 +12,7 @@ import UpdatePassword from './pages/UpdatePassword';
 import { registerLicense } from '@syncfusion/ej2-base';
 import Dashboard from './pages/Dashboard';
 import ManageProducts from './pages/ManageProducts';
+import ProductPreview from './pages/productPreview';
 
 // Registering Syncfusion license key
 registerLicense(
@@ -31,6 +32,7 @@ const AppRoutes = () => {
           <Route path="signup" element={<Signup />} />
           <Route path="reset-password" element={<ResetPassword />} />
           <Route path="update-password" element={<UpdatePassword />} />
+          <Route path="product-preview" element={<ProductPreview />} />
         </Route>
         <Route path="logout" element={<Logout />} />
         <Route path="/dashboard" element={<PrivateRoutes />}>

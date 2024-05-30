@@ -1,0 +1,35 @@
+.row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    text-transform: capitalize;
+    flex-wrap: wrap;
+    text-align: center;
+    padding: 10px;
+    border: 1px solid #eee;
+    margin-bottom: 10px;
+  }
+  
+  .row > span {
+    flex: 0 calc(100% / 6);
+  }
+  
+  .row > span > img {
+    width: 80px;
+    vertical-align: middle;
+  }
+  
+  .bold {
+    font-weight: bold;
+    line-height: 20px;
+  }
+  
+  .edit-product {
+    cursor: pointer;
+    text-decoration: underline;
+    color: purple;
+  }
+  
+  .product-list {
+    min-height: 600px;
+  }
