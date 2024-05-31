@@ -1,8 +1,9 @@
-import "./productList.css";
+import "../productList.css";
+
 import { Link } from "react-router-dom";
-import useProducts from "../../hooks/useProducts";
+import useProducts from "../../hooks/useProduct";
 import productStore from "../store/products";
-import useCartStore from "../store/cart";
+import useCartStore from "../store/cartStore";
 import DataGrid from "../components/DataGrid/index";
 import BrowserWrapper from "../components/browserWrapper";
 

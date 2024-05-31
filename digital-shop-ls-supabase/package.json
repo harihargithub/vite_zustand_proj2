@@ -14,6 +14,7 @@
     "@syncfusion/ej2-base": "^25.2.3",
     "@syncfusion/ej2-layouts": "^25.2.3",
     "@syncfusion/ej2-react-buttons": "^25.2.3",
+    "@syncfusion/ej2-react-grids": "^25.2.6",
     "@syncfusion/ej2-react-inputs": "^25.2.3",
     "@syncfusion/ej2-react-navigations": "^25.2.3",
     "@syncfusion/ej2-react-notifications": "^25.2.3",

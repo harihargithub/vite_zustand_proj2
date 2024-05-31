@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { supabase } from "./supabase";
-import productStore from "../store/products";
+import productStore from "../src/store/products";
 
 const useProducts = () => {
   const setProductsList = productStore((state) => state.setProductsList);

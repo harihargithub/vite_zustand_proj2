@@ -13,6 +13,9 @@ import UpdatePassword from './pages/UpdatePassword';
 import Dashboard from './pages/Dashboard';
 import ManageProducts from './pages/ManageProducts';
 import ProductPreview from './pages/productPreview';
+import Browse from './pages/browse';
+import Cart from './pages/cart';
+
 
 // Registering Syncfusion license key
 /* registerLicense(
@@ -27,7 +30,7 @@ const AppRoutes = () => {
       <Navbar />
       <Routes>
         <Route path="/" element={<PublicRoutes />}>
-          <Route index element={<h1>Browse</h1>} />
+        <Route index element={<Browse />} />
           <Route path="product-list" element={<h1>Product List</h1>} />
           <Route path="Login" element={<Login />} />
           <Route path="Register" element={<Signup />} />
@@ -45,8 +48,11 @@ const AppRoutes = () => {
           <Route path="product-add" element={<h1>Product Add</h1>} />
           <Route path="checkout" element={<h1>checkout</h1>} />
           <Route path="thank-you" element={<h1>Thank You</h1>} />
-          <Route path="product-list" element={<h1>Product List</h1>} />
         </Route>
+        <Route path="product-list" element={<h1>Product List</h1>} />
+        <Route path="/product/:id" element={<ProductPreview />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/browse" element={<Browse />} />
         <Route path="/*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>

@@ -2,10 +2,10 @@ import "@syncfusion/ej2-layouts/styles/material.css";
 import "@syncfusion/ej2-react-buttons/styles/material.css";
 import "@syncfusion/ej2-base/styles/material.css";
 import "@syncfusion/ej2-react-navigations/styles/material.css";
-import "./wrapper.css";
+import "../wrapper.css";
 import { Link, NavLink } from "react-router-dom";
 import useStore from "../store/supaStore";
-import useCartStore from "../store/cart";
+import useCartStore from "../store/cartStore";
 import PropTypes from "prop-types";
 
 const BrowserWrapper = ({ children }) => {
