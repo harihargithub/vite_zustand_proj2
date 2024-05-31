@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import supabase from "../../hooks/supabase";
+import { supabase } from "../../hooks/supabase";
 import "@syncfusion/ej2-layouts/styles/material.css";
 import "@syncfusion/ej2-react-buttons/styles/material.css";
 import { ButtonComponent } from "@syncfusion/ej2-react-buttons";

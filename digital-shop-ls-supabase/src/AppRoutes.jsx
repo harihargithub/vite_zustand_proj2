@@ -9,15 +9,17 @@ import Navbar from './components/navbar';
 import Logout from './pages/logout';
 import ResetPassword from './pages/ResetPassword';
 import UpdatePassword from './pages/UpdatePassword';
-import { registerLicense } from '@syncfusion/ej2-base';
+// import { registerLicense } from '@syncfusion/ej2-base';
 import Dashboard from './pages/Dashboard';
 import ManageProducts from './pages/ManageProducts';
 import ProductPreview from './pages/productPreview';
 
 // Registering Syncfusion license key
-registerLicense(
-  'Ngo9BigBOggjHTQxAR8/V1NBaF5cXmZCf1FpRmJGdld5fUVHYVZUTXxaS00DNHVRdkdnWXpceHZXR2VYUUFzX0o=',
-);
+/* registerLicense(
+  'Ngo9BigBOggjHTQxAR8/V1NBaF5cXmZCf1FpRmJGdld5fUVHYVZUTXxaS00DNHVRdkdnWXpdcHZXRGhZV0N3V0Q=',
+); */
+
+// registerLicense(import.meta.env.VITE_SYNCFUSION_LICENSE_KEY);
 
 const AppRoutes = () => {
   return (
