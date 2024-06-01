@@ -10,21 +10,28 @@ import useStore from "../store/supaStore";
 const ProductPreview = () => {
   const params = useParams();
   const [product, setProduct] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
   const isLoggedIn = useStore((state) => state.isLoggedIn);
-  const SupaBase = supabase();
+  const SupaBase = supabase;
 
   const fetchProduct = useCallback(async () => {
+    setIsLoading(true);
     try {
       const { data: productData, error: productError } = await SupaBase
         .from("products")
         .select()
         .eq("id", params.id);
 
+      if (productError) {
+        throw productError;
+      }
+
       setProduct(productData.length ? productData[0] : {});
     } catch (e) {
       console.error(`There was an error while fetching the product with the id:
-        ${params.id}`);
+        ${params.id}`, e);
     }
+    setIsLoading(false);
   }, [params.id, SupaBase]);
 
   useEffect(() => {
@@ -38,7 +45,9 @@ const ProductPreview = () => {
 
   return (
     <div className="product-preview">
-      {isProductFetched ? (
+      {isLoading ? (
+        <h1>Loading...</h1>
+      ) : isProductFetched ? (
         <div>
           <div className="hero-image e-card">
             <img src={product.product_thumbnail} alt={product.product_name} />

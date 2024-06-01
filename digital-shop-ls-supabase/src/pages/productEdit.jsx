@@ -6,7 +6,7 @@ import { ButtonComponent } from "@syncfusion/ej2-react-buttons";
 import { useState, useRef, useEffect } from "react";
 import "../../src/productAdd.css";
 import TextEditor from "../../src/components/TextEditor";
-import supabase from "../../hooks/supbase"
+import { supabase } from "../../hooks/supabase"
 import Toast from "../components/toast"
 import productStore from "../store/products";
 

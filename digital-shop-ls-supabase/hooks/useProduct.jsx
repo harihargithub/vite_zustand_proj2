@@ -4,7 +4,7 @@ import productStore from "../src/store/products";
 
 const useProducts = () => {
   const setProductsList = productStore((state) => state.setProductsList);
-  const SupaBase = supabase();
+  const SupaBase = supabase;
 
   useEffect(() => {
     const fetchProducts = async () => {
