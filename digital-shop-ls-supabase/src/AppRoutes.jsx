@@ -22,6 +22,7 @@ const AppRoutes = () => {
     <BrowserRouter>
       <Navbar />
       <Routes>
+        <Route path="product/:id" element={<ProductPreview />} /> {/* Move this line here */}
         <Route path="/*" element={<PublicRoutes />}>
           <Route index element={<Browse />} />
           <Route path="product-list" element={<ProductList />} />
@@ -30,7 +31,6 @@ const AppRoutes = () => {
           <Route path="signup" element={<Signup />} />
           <Route path="reset-password" element={<ResetPassword />} />
           <Route path="update-password" element={<UpdatePassword />} />
-          <Route path="product/:id" element={<ProductPreview />} />
           <Route path="browse" element={<Browse />} />
         </Route>
         <Route path="logout" element={<Logout />} />

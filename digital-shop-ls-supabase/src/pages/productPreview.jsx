@@ -1,3 +1,4 @@
+// productPreview.jsx under src/pages folder
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "../../hooks/supabase";
@@ -6,12 +7,15 @@ import "@syncfusion/ej2-react-buttons/styles/material.css";
 import { ButtonComponent } from "@syncfusion/ej2-react-buttons";
 import "../productPreview.css"
 import useStore from "../store/supaStore";
+import useCartStore from "../store/cartStore"; // import the cart store
+import { useNavigate } from "react-router-dom";
 
 const ProductPreview = () => {
   const params = useParams();
   const [product, setProduct] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const isLoggedIn = useStore((state) => state.isLoggedIn);
+  const setCartItems = useCartStore((state) => state.setCartItems); // get the setCartItems function from the cart store
   const SupaBase = supabase;
 
   const fetchProduct = useCallback(async () => {
@@ -43,39 +47,37 @@ const ProductPreview = () => {
   const userMetaData = product?.user_details?.user_metadata;
   const userName = `${userMetaData?.firstName} ${userMetaData?.lastName}`;
 
+  const navigate = useNavigate(); // add this line
+
+  const handleAddToCart = () => {
+    setCartItems((prevItems) => ({ ...prevItems, [product.id]: product }));
+    navigate('/dashboard/cart'); // add this line
+  };
+
   return (
-    <div className="product-preview">
-      {isLoading ? (
-        <h1>Loading...</h1>
-      ) : isProductFetched ? (
-        <div>
-          <div className="hero-image e-card">
-            <img src={product.product_thumbnail} alt={product.product_name} />
-          </div>
-          <div className="product-details">
-            <section className="e-card section-right">
-              <h1>
-                {product.product_name} | From: {userName}
-              </h1>
-              <div
-                dangerouslySetInnerHTML={{ __html: product.product_details }}
-              ></div>
-            </section>
-            <section className="e-card section-left">
-              <h2>Price: ${product.product_price}</h2>
-              {!isLoggedIn && (
-                <ButtonComponent className="e-success">
-                  Purchase
-                </ButtonComponent>
-              )}
-            </section>
-          </div>
-        </div>
-      ) : (
-        <h1>No Product found</h1>
-      )}
-    </div>
-  );
+  <div className="product-preview">
+    {isLoading ? (
+      <h1>Loading...</h1>
+    ) : isProductFetched ? (
+      <div>
+        <section className="e-card section-left">
+          <h2>Name: {product.product_name}</h2>
+          <h2>Price: ${product.product_price}</h2>
+          <h3>Seller: {userName}</h3>
+          <img src={product.product_thumbnail} alt={product.product_name} />
+          <p>Offering: {product.product_offering}</p>
+          {isLoggedIn && (
+            <ButtonComponent className="e-success" onClick={handleAddToCart}>
+              Add to Cart
+            </ButtonComponent>
+          )}
+        </section>
+      </div>
+    ) : (
+      <h1>No Product found</h1>
+    )}
+  </div>
+);
 };
 
 export default ProductPreview;

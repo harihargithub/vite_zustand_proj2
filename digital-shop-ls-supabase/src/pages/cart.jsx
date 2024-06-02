@@ -32,19 +32,19 @@ ActionsTemplate.propTypes = {
   const cartItems = Object.keys(items).map((e) => items[e]);
 
   return (
-    <BrowserWrapper>
-      <div className="cart-items">
-        <DataGrid data={cartItems} ActionsTemplate={ActionsTemplate} />
-        <div className="purchase-area">
-          {isLoggedIn ? (
-            <Link to={items.length === 0 ? "" : "/checkout"}>Continue to purchase</Link>
-          ) : (
-            <Link to="/login">Login to purchase</Link>
-          )}
-        </div>
+  <BrowserWrapper>
+    <div className="cart-items">
+      <DataGrid data={cartItems} ActionsTemplate={ActionsTemplate} />
+      <div className="purchase-area">
+        {isLoggedIn ? (
+          <Link to={Object.keys(items).length === 0 ? "" : "/checkout"}>Continue to purchase</Link>
+        ) : (
+          <Link to="/login">Login to purchase</Link>
+        )}
       </div>
-    </BrowserWrapper>
-  );
+    </div>
+  </BrowserWrapper>
+);
 };
 
 export default Cart;
