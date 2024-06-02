@@ -1,0 +1,34 @@
+.checkout-wrapper {
+    max-width: 800px;
+    margin: 100px auto 0 auto;
+    display: flex;
+  }
+  
+  .checkout-wrapper > main {
+    padding: 40px;
+  }
+  
+  .checkout-wrapper > aside {
+    width: 300px;
+    margin-left: 15px;
+    padding: 5px;
+  }
+  
+  .checkout-wrapper .form-group {
+    margin: 10px;
+  }
+  
+  .checkout-wrapper .product-wrapper {
+    text-align: center;
+  }
+  
+  .checkout-wrapper img {
+    width: 100px;
+  }
+  
+  .checkout-wrapper .product {
+    font-size: 14px;
+    line-height: 1.3em;
+    margin: 20px 0;
+    border-bottom: 1px solid;
+  }

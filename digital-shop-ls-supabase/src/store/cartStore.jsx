@@ -1,3 +1,4 @@
+//cartStore.jsx under src/store folder
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 

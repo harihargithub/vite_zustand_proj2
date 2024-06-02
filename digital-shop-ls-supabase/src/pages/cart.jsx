@@ -1,19 +1,49 @@
-import useCartStore from '../store/cartStore';
+import "../productList.css";
+import useCartStore from "../store/cartStore";
+import useStore from "../store/supaStore";
+import BrowserWrapper from "../components/browserWrapper";
+import DataGrid from "../components/DataGrid/index";
+import { Link } from "react-router-dom";
+import "../cart.css";
+import PropTypes from "prop-types";
 
 const Cart = () => {
-  const { items, setCartItems, updateCartItems, resetCart } = useCartStore();
+  const isLoggedIn = useStore((state) => state.isLoggedIn);
+  const { items, updateCartItems } = useCartStore((state) => state);
 
-  // Render your cart UI here. This is just a placeholder.
+  const removeCartItems = (product_id) => {
+    const itemsClone = { ...items };
+    delete itemsClone[product_id];
+    updateCartItems(itemsClone);
+  };
+
+  const ActionsTemplate = ({ id }) => {
   return (
-    <div>
-      <h1>Cart</h1>
-      {/* Render the items in the cart */}
-      {Object.keys(items).map((key) => (
-        <div key={key}>{items[key]}</div>
-      ))}
-      {/* Add buttons or other controls to update or reset the cart */}
-      <button onClick={resetCart}>Reset Cart</button>
-    </div>
+    <span onClick={() => removeCartItems(id)} className="edit-product">
+      Remove
+    </span>
+  );
+};
+
+ActionsTemplate.propTypes = {
+    id: PropTypes.number.isRequired,
+  };
+
+  const cartItems = Object.keys(items).map((e) => items[e]);
+
+  return (
+    <BrowserWrapper>
+      <div className="cart-items">
+        <DataGrid data={cartItems} ActionsTemplate={ActionsTemplate} />
+        <div className="purchase-area">
+          {isLoggedIn ? (
+            <Link to={items.length === 0 ? "" : "/checkout"}>Continue to purchase</Link>
+          ) : (
+            <Link to="/login">Login to purchase</Link>
+          )}
+        </div>
+      </div>
+    </BrowserWrapper>
   );
 };
 

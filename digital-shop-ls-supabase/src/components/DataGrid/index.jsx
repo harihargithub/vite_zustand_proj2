@@ -1,3 +1,4 @@
+// index.jsx under src/components/DataGrid folder
 import PropTypes from 'prop-types';
 import "@syncfusion/ej2-base/styles/material.css";
 import "@syncfusion/ej2-buttons/styles/material.css";
@@ -16,9 +17,6 @@ import {
   Inject,
   Page,
 } from "@syncfusion/ej2-react-grids";
-
-import { Link } from "react-router-dom";
-import * as React from "react";
 
 const DefaultValueTemplate = (props) => {
   return props[props.column.field] || 0;
@@ -47,6 +45,12 @@ ThumbnailTemplate.propTypes = {
 };
 
 const DataGrid = ({ data, ActionsTemplate }) => {
+  const ActionsTemplateWrapper = ({ id }) => <ActionsTemplate id={id} />;
+
+ActionsTemplateWrapper.propTypes = {
+  id: PropTypes.number.isRequired,
+};
+
   return (
     <GridComponent
       dataSource={data}
@@ -86,7 +90,7 @@ const DataGrid = ({ data, ActionsTemplate }) => {
         <ColumnDirective
           field="action"
           width="100"
-          template={ActionsTemplate}
+          template={ActionsTemplateWrapper}
           headerText="Action"
         />
       </ColumnsDirective>
@@ -97,7 +101,7 @@ const DataGrid = ({ data, ActionsTemplate }) => {
 
 DataGrid.propTypes = {
   data: PropTypes.array.isRequired,
-  ActionsTemplate: PropTypes.element.isRequired,
+  ActionsTemplate: PropTypes.func.isRequired,
 };
 
 export default DataGrid;

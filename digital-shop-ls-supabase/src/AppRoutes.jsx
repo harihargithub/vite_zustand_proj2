@@ -14,6 +14,8 @@ import ProductPreview from './pages/productPreview';
 import Browse from './pages/browse';
 import Cart from './pages/cart';
 import ProductList from './pages/productsList';
+import Checkout from './pages/checkout';
+import ThankYou from './pages/thankyou';
 
 const AppRoutes = () => {
   return (
@@ -39,8 +41,8 @@ const AppRoutes = () => {
         </Route>
         <Route path="/app/*" element={<PrivateRoutes />}>
           <Route path="product-add" element={<h1>Product Add</h1>} />
-          <Route path="checkout" element={<h1>checkout</h1>} />
-          <Route path="thank-you" element={<h1>Thank You</h1>} />
+          <Route path="checkout" element={<Checkout />} />
+          <Route path="thank-you" element={<ThankYou />} />
         </Route>
         <Route path="/*" element={<NotFound />} />
       </Routes>

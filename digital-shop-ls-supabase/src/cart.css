@@ -1,0 +1,21 @@
+.purchase-area {
+    text-align: center;
+    padding: 20px;
+    margin: 20px;
+  }
+  
+  .purchase-area a {
+    text-align: center;
+    padding: 20px;
+    display: inline-block;
+    text-decoration: none;
+    font-size: 1.2em;
+    color: #fff;
+    background: #4caf50;
+    border-bottom: 1px solid #f7f7f7;
+    transition: all 0.2s ease;
+  }
+  
+  .purchase-area a:hover {
+    color: #000;
+  }

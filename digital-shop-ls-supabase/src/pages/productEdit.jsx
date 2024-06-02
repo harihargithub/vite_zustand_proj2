@@ -21,7 +21,7 @@ const ProductEdit = ({ product }) => {
     type: "error",
   });
   const productDescriptionRef = useRef();
-  const SupaBase = supabase();
+  const SupaBase = supabase;
   const { productsList, setProductsList } = productStore((state) => state);
 
   const handleClick = async () => {

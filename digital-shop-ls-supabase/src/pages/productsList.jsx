@@ -8,7 +8,8 @@ import productStore from "../store/products";
 import DataGrid from "../components/DataGrid/index";
 import PropTypes from "prop-types";
 
-const ActionsTemplate = ({ product, setProductToEdit, setShowModal }) => {
+const ActionsTemplate = (props) => {
+  const { product, setProductToEdit, setShowModal } = props;
   return (
     <span>
       <span
@@ -36,6 +37,40 @@ ActionsTemplate.propTypes = {
   setShowModal: PropTypes.func.isRequired,
 };
 
+
+
+const withProductActions = (Component) => {
+  const WithProductActions = (props) => {
+    const { product, setProductToEdit, setShowModal } = props;
+    return (
+      <Component
+        product={product}
+        setProductToEdit={setProductToEdit}
+        setShowModal={setShowModal}
+      />
+    );
+  };
+
+  WithProductActions.displayName = `WithProductActions(${getDisplayName(Component)})`;
+
+  WithProductActions.propTypes = {
+    product: PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      Name: PropTypes.string.isRequired,
+    }).isRequired,
+    setProductToEdit: PropTypes.func.isRequired,
+    setShowModal: PropTypes.func.isRequired,
+  };
+
+  return WithProductActions;
+};
+
+function getDisplayName(WrappedComponent) {
+  return WrappedComponent.displayName || WrappedComponent.name || 'Component';
+}
+
+const ProductActions = withProductActions(ActionsTemplate);
+
 const ProductList = () => {
   const [productToEdit, setProductToEdit] = useState({});
   const [showModal, setShowModal] = useState(false);
@@ -44,16 +79,13 @@ const ProductList = () => {
 
   return (
     <div className="product-list">
-      <DataGrid data={productsList}>
-        {productsList.map((product) => (
-          <ActionsTemplate
-            key={product.id}
-            product={product}
-            setProductToEdit={setProductToEdit}
-            setShowModal={setShowModal}
-          />
-        ))}
-      </DataGrid>
+      <DataGrid
+        data={productsList}
+        ActionsTemplate={<ProductActions
+          setProductToEdit={setProductToEdit}
+          setShowModal={setShowModal}
+        />}
+      />
       <Modal
         showModal={showModal}
         handleClose={() => {
