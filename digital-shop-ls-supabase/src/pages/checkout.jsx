@@ -22,11 +22,14 @@ const getCartTotal = (items) => {
 const CartDetails = () => {
   const items = useCartStore((state) => state.items);
 
-  const itemsMapped = Object.keys(items).map((e) => items[e]);
+  const itemsMapped = Object.keys(items).map((e) => {
+    const item = items[e];
+    return { ...item, product_price: Number(item.product_price) };
+  });
 
-  const cartTotal = getCartTotal(items);
+  const cartTotal = getCartTotal(itemsMapped);
 
-  const productsMapped = itemsMapped.map((e) => <Products item={e} key={e} />);
+  const productsMapped = itemsMapped.map((e, index) => <Products item={e} key={index} />);
 
   return (
     <div className="product-wrapper">
@@ -39,6 +42,9 @@ const CartDetails = () => {
 };
 
 const Products = ({ item }) => {
+  // Convert product_price to a number
+  item.product_price = Number(item.product_price);
+
   return (
     <div className="product" key={item.product_name}>
       <div>
@@ -123,37 +129,41 @@ const ShippingForm = () => {
       },
     };
     formObject.current = new FormValidator("#form1", options);
+    if (supabase.auth.user) {
+      console.log(supabase.auth.user);
+    } else {
+      console.log('No user is currently logged in');
+    }
   }, []);
 
   const onSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      const { data, error: userError } = await supabase.auth.getSession();
-      const { session } = data;
+  try {
+    const session = supabase.auth.session;
 
-      const address = JSON.stringify(state);
-      const products = JSON.stringify(items);
-      const total = getCartTotal(items);
-      const { data: orderData, error: orderError } = await supabase
-        .from("order")
-        .insert({
-          total,
-          address,
-          products,
-          user_id: session?.user?.id,
-        })
-        .select();
+    const address = JSON.stringify(state);
+    const products = JSON.stringify(items);
+    const total = getCartTotal(items);
+    const { data: orderData, error: orderError } = await supabase
+      .from("order")
+      .insert({
+        total,
+        address,
+        products,
+        user_id: session?.user?.id,
+      })
+      .select();
 
-      if (!orderError) {
-        formObject.current.element.reset();
-        resetCart();
-        navigate("/thank-you", { state: { orderId: orderData[0].id } });
-      }
-    } catch (e) {
-      console.error("Something went wrong", e);
+    if (!orderError) {
+      formObject.current.element.reset();
+      resetCart();
+      navigate("/dashboard/thank-you", { state: { orderId: orderData[0].id } });
     }
-  };
+  } catch (e) {
+    console.error("Something went wrong", e);
+  }
+};
 
   return (
     <>

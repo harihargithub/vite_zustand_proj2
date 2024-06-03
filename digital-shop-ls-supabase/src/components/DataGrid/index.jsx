@@ -19,7 +19,7 @@ import {
 } from "@syncfusion/ej2-react-grids";
 
 const DefaultValueTemplate = (props) => {
-  return props[props.column.field] || 0;
+  return Number(props[props.column.field]) || 0;
 };
 
 DefaultValueTemplate.propTypes = {

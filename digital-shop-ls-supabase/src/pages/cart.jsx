@@ -1,3 +1,4 @@
+// cart.jsx
 import "../productList.css";
 import useCartStore from "../store/cartStore";
 import useStore from "../store/supaStore";
@@ -6,6 +7,8 @@ import DataGrid from "../components/DataGrid/index";
 import { Link } from "react-router-dom";
 import "../cart.css";
 import PropTypes from "prop-types";
+import { supabase } from '../../hooks/supabase';
+import { useEffect } from "react";
 
 const Cart = () => {
   const isLoggedIn = useStore((state) => state.isLoggedIn);
@@ -18,33 +21,42 @@ const Cart = () => {
   };
 
   const ActionsTemplate = ({ id }) => {
-  return (
-    <span onClick={() => removeCartItems(id)} className="edit-product">
-      Remove
-    </span>
-  );
-};
+    return (
+      <span onClick={() => removeCartItems(id)} className="edit-product">
+        Remove
+      </span>
+    );
+  };
 
-ActionsTemplate.propTypes = {
+  ActionsTemplate.propTypes = {
     id: PropTypes.number.isRequired,
   };
 
   const cartItems = Object.keys(items).map((e) => items[e]);
 
+  console.log('Cart items before passing to DataGrid:', cartItems);
+
+  useEffect(() => {
+    console.log(supabase.auth.user);
+  }, []);
+
   return (
-  <BrowserWrapper>
-    <div className="cart-items">
-      <DataGrid data={cartItems} ActionsTemplate={ActionsTemplate} />
-      <div className="purchase-area">
-        {isLoggedIn ? (
-          <Link to={Object.keys(items).length === 0 ? "" : "/checkout"}>Continue to purchase</Link>
-        ) : (
-          <Link to="/login">Login to purchase</Link>
-        )}
+    <BrowserWrapper>
+      <div className="cart-items">
+        <DataGrid data={cartItems} ActionsTemplate={ActionsTemplate} />
+        <div className="purchase-area">
+          {isLoggedIn ? (
+            <div>
+              <Link to="/browse">Continue to Purchase</Link>
+              {Object.keys(items).length > 0 && <Link to="/app/checkout">Checkout</Link>}
+            </div>
+          ) : (
+            <Link to="/login">Login to purchase</Link>
+          )}
+        </div>
       </div>
-    </div>
-  </BrowserWrapper>
-);
+    </BrowserWrapper>
+  );
 };
 
 export default Cart;

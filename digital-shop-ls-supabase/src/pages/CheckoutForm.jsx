@@ -1,3 +1,4 @@
+// CheckoutForm.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../hooks/supabase'; 
@@ -14,11 +15,16 @@ const CheckoutForm = () => {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-
+  
     try {
-      const { data, error: userError } = await supabase.auth.session();
-      const { session } = data;
-
+      const session = supabase.auth.session();
+      console.log('session:', session); // Add this line
+  
+      if (!session || !session.user) {
+        console.error('No user session found');
+        return;
+      }
+  
       const products = JSON.stringify(cartItems);
       const total = getCartTotal(cartItems);
       const { data: orderData, error: orderError } = await supabase
@@ -27,14 +33,19 @@ const CheckoutForm = () => {
           total,
           address,
           products,
-          user_id: session?.user?.id,
+          user_id: session.user.id,
         })
         .single();
-
-      if (!orderError) {
-        resetCart();
-        navigate("/thank-you", { state: { orderId: orderData.id } });
+  
+      if (orderError) {
+        console.error('Order error:', orderError);
+        return;
       }
+  
+      console.log('orderData:', orderData);
+  
+      resetCart();
+      navigate("/dashboard/thank-you", { replace: true, state: { orderId: orderData.id } });
     } catch (e) {
       console.error("Something went wrong", e);
     }

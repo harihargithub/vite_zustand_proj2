@@ -1,12 +1,15 @@
+// ThankYou.jsx under src/pages folder
 import { useLocation, useNavigate } from "react-router-dom";
 
 const ThankYou = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
 
-  if (!state) {
+  console.log('state:', state);
+
+  if (!state || !state.orderId) {
     navigate("/dashboard");
-    return;
+    return null;
   }
 
   const { orderId } = state;

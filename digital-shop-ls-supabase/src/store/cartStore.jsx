@@ -4,16 +4,23 @@ import { persist } from "zustand/middleware";
 
 let store = (set) => ({
   items: {},
-  setCartItems: (item) =>
-	set((state) => ({ items: { ...state.items, ...item } })),
+  setCartItems: (item) => {
+    console.log('Item to add to cart:', item); // Add this line
+    set((state) => {
+      const newItems = { ...state.items, ...item };
+      console.log('Cart items in store after setting:', newItems);
+      return { items: newItems };
+    });
+  },
+  
   updateCartItems: (items) => set(() => ({ items })),
   resetCart: () => set(() => ({ items: {} })),
 });
 
-//persist the state with key "randomKey"
 store = persist(store, { name: "user-cart" });
 
-//create the store
 let useCartStore = create(store);
+
+console.log('Cart items in store after creating:', useCartStore.getState().items);
 
 export default useCartStore;

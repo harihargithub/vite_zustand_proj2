@@ -20,12 +20,17 @@
 ┃ ┣ 📂components
 ┃ ┃ ┣ 📂DataGrid
 ┃ ┃ ┃ ┗ 📜index.jsx
+┃ ┃ ┣ 📜browserWrapper.jsx
 ┃ ┃ ┣ 📜Modal.jsx
 ┃ ┃ ┣ 📜navbar.jsx
 ┃ ┃ ┣ 📜TextEditor.jsx
 ┃ ┃ ┣ 📜toast.jsx
 ┃ ┃ ┗ 📜Wrapper.jsx
 ┃ ┣ 📂pages
+┃ ┃ ┣ 📜browse.jsx
+┃ ┃ ┣ 📜cart.jsx
+┃ ┃ ┣ 📜checkout.jsx
+┃ ┃ ┣ 📜CheckoutForm.jsx
 ┃ ┃ ┣ 📜Dashboard.jsx
 ┃ ┃ ┣ 📜logout.jsx
 ┃ ┃ ┣ 📜ManageProducts.jsx
@@ -33,22 +38,26 @@
 ┃ ┃ ┣ 📜productAdd.jsx
 ┃ ┃ ┣ 📜productEdit.jsx
 ┃ ┃ ┣ 📜productPreview.jsx
-┃ ┃ ┣ 📜productsList.js.jsx
+┃ ┃ ┣ 📜productsList.jsx
 ┃ ┃ ┣ 📜ResetPassword.jsx
 ┃ ┃ ┣ 📜signin.jsx
 ┃ ┃ ┣ 📜signup.jsx
+┃ ┃ ┣ 📜thankyou.jsx
 ┃ ┃ ┗ 📜UpdatePassword.jsx
 ┃ ┣ 📂routes
 ┃ ┃ ┣ 📜private.jsx
 ┃ ┃ ┗ 📜public.jsx
 ┃ ┣ 📂store
 ┃ ┃ ┣ 📜authStore.jsx
+┃ ┃ ┣ 📜cartStore.jsx
 ┃ ┃ ┣ 📜products.jsx
 ┃ ┃ ┗ 📜supaStore.jsx
 ┃ ┣ 📜App.css
 ┃ ┣ 📜App.jsx
 ┃ ┣ 📜AppRoutes.jsx
 ┃ ┣ 📜basic.css
+┃ ┣ 📜cart.css
+┃ ┣ 📜checkout.css
 ┃ ┣ 📜index.css
 ┃ ┣ 📜main.jsx
 ┃ ┣ 📜manageProduct.css

@@ -1,3 +1,4 @@
+//products.jsx under src/store folder
 import { create } from "zustand";
 
 let store = (set) => ({

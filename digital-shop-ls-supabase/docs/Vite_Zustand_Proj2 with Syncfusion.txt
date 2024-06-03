@@ -8132,3 +8132,1028 @@ ActionsTemplateWrapper.propTypes = {
 This code defines a functional component `ActionsTemplateWrapper` that takes `id` as a prop and passes it to `ActionsTemplate`. The PropTypes for `ActionsTemplateWrapper` validate that `id` is a number and is required. This should resolve the 'id' is missing in props validation warning. 
 
 The rest of your code also looks correct, assuming that `ActionsTemplate` is a functional component that takes `id` as a prop and `data` is an array of objects that each have a `product_thumbnail`, `product_name`, `product_price`, `product_sale`, and `product_profit` field.
+
+harihargithub: Can't find add to cart feature so please check and advise -
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Login from './pages/signin';
+import Signup from './pages/signup';
+import PrivateRoutes from './routes/private';
+import PublicRoutes from './routes/public';
+import NotFound from './pages/page404';
+import Navbar from './components/navbar';
+import Logout from './pages/logout';
+import ResetPassword from './pages/ResetPassword';
+import UpdatePassword from './pages/UpdatePassword';
+import Dashboard from './pages/Dashboard';
+import ManageProducts from './pages/ManageProducts';
+import ProductPreview from './pages/productPreview';
+import Browse from './pages/browse';
+import Cart from './pages/cart';
+import ProductList from './pages/productsList';
+import Checkout from './pages/checkout';
+import ThankYou from './pages/thankyou';
+
+const AppRoutes = () => {
+  return (
+    <BrowserRouter>
+      <Navbar />
+      <Routes>
+        <Route path="/*" element={<PublicRoutes />}>
+          <Route index element={<Browse />} />
+          <Route path="product-list" element={<ProductList />} />
+          <Route path="login" element={<Login />} />
+          <Route path="register" element={<Signup />} />
+          <Route path="signup" element={<Signup />} />
+          <Route path="reset-password" element={<ResetPassword />} />
+          <Route path="update-password" element={<UpdatePassword />} />
+          <Route path="product/:id" element={<ProductPreview />} />
+          <Route path="browse" element={<Browse />} />
+        </Route>
+        <Route path="logout" element={<Logout />} />
+        <Route path="/dashboard/*" element={<PrivateRoutes />}>
+          <Route index element={<Dashboard />} />
+          <Route path="manage-products" element={<ManageProducts />} />
+          <Route path="cart" element={<Cart />} />
+        </Route>
+        <Route path="/app/*" element={<PrivateRoutes />}>
+          <Route path="product-add" element={<h1>Product Add</h1>} />
+          <Route path="checkout" element={<Checkout />} />
+          <Route path="thank-you" element={<ThankYou />} />
+        </Route>
+        <Route path="/*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  );
+};
+
+export default AppRoutes;
+
+GitHub Copilot: From the code you've provided, it seems like the "Add to Cart" feature would be implemented in the `ProductPreview` page. When a user navigates to a specific product (using the route `product/:id`), they would be able to view the product details and presumably have an option to add the product to their cart.
+
+However, the code for the `ProductPreview` page is not provided here, so I can't confirm if the "Add to Cart" feature is implemented there or not.
+
+If the "Add to Cart" feature is not implemented in the `ProductPreview` page, you would need to add a button or a form on that page that allows the user to add the current product to their cart. When this button is clicked, you would update the user's cart to include the current product. This could involve making a POST request to a server-side route like `/cart/add`, or it could involve updating the state of your app to include the new product in the cart.
+
+The `Cart` page would then display all the products in the user's cart. The user could navigate to this page by clicking on a "View Cart" button somewhere in your app, or by navigating to the `/dashboard/cart` route.
+
+Without more information about how your app is structured and how you're managing state, it's hard to give more specific advice. If you provide more details, I'd be happy to help further!
+
+harihargithub: The file requested for in your above message is shared herewith
+
+GitHub Copilot: Thank you for sharing the `ProductPreview` component. From the code, it seems that there is currently no functionality to add a product to the cart. 
+
+To add this functionality, you could add a new button that, when clicked, adds the current product to the user's cart. This could involve updating a global state or making a POST request to a server-side route like `/cart/add`.
+
+Here's an example of how you could add this functionality using a global state with a `useStore` hook:
+
+```jsx
+import { useEffect, useState, useCallback } from "react";
+import { useParams } from "react-router-dom";
+import { supabase } from "../../hooks/supabase";
+import "@syncfusion/ej2-layouts/styles/material.css";
+import "@syncfusion/ej2-react-buttons/styles/material.css";
+import { ButtonComponent } from "@syncfusion/ej2-react-buttons";
+import "../productPreview.css"
+import useStore from "../store/supaStore";
+
+const ProductPreview = () => {
+  const params = useParams();
+  const [product, setProduct] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const isLoggedIn = useStore((state) => state.isLoggedIn);
+  const addToCart = useStore((state) => state.addToCart);
+  const SupaBase = supabase;
+
+  // ... rest of your code ...
+
+  return (
+    <div className="product-preview">
+      {isLoading ? (
+        <h1>Loading...</h1>
+      ) : isProductFetched ? (
+        <div>
+          {/* ... rest of your code ... */}
+            <section className="e-card section-left">
+              <h2>Price: ${product.product_price}</h2>
+              {!isLoggedIn && (
+                <ButtonComponent className="e-success">
+                  Purchase
+                </ButtonComponent>
+              )}
+              {isLoggedIn && (
+                <ButtonComponent className="e-success" onClick={() => addToCart(product)}>
+                  Add to Cart
+                </ButtonComponent>
+              )}
+            </section>
+          </div>
+        </div>
+      ) : (
+        <h1>No Product found</h1>
+      )}
+    </div>
+  );
+};
+
+export default ProductPreview;
+```
+
+In this updated code, I've added a new `ButtonComponent` that only shows up if the user is logged in. When this button is clicked, it calls the `addToCart` function from the `useStore` hook and passes the current product as an argument. 
+
+The `addToCart` function would need to be defined in your global state and should update the user's cart to include the new product. The exact implementation of this function would depend on how you're managing state in your app.
+
+harihargithub: Reference your query in your above message sharing cartStore.jsx and products.jsx -
+import { create } from "zustand";
+
+let store = (set) => ({
+  productsList: [],
+  setProductsList: (productsList) => set(() => ({ productsList })),
+});
+
+//create the store
+let productStore = create(store);
+
+export default productStore;
+
+Additionally advise if you want to share any other files?
+
+GitHub Copilot: Thank you for sharing the `cartStore.jsx` and `productStore.jsx` files. It seems you're using Zustand for state management, which is a great choice for its simplicity and flexibility.
+
+Now, let's add the "Add to Cart" functionality to your `ProductPreview` component. We'll use the `setCartItems` function from `cartStore` to add items to the cart.
+
+Here's how you can modify your `ProductPreview` component:
+
+```jsx
+import { useEffect, useState, useCallback } from "react";
+import { useParams } from "react-router-dom";
+import { supabase } from "../../hooks/supabase";
+import "@syncfusion/ej2-layouts/styles/material.css";
+import "@syncfusion/ej2-react-buttons/styles/material.css";
+import { ButtonComponent } from "@syncfusion/ej2-react-buttons";
+import "../productPreview.css"
+import useCartStore from "../store/cartStore";
+
+const ProductPreview = () => {
+  const params = useParams();
+  const [product, setProduct] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const setCartItems = useCartStore((state) => state.setCartItems);
+  const SupaBase = supabase;
+
+  // ... rest of your code ...
+
+  const handleAddToCart = () => {
+    setCartItems({ [product.id]: product });
+  };
+
+  return (
+    <div className="product-preview">
+      {isLoading ? (
+        <h1>Loading...</h1>
+      ) : isProductFetched ? (
+        <div>
+          {/* ... rest of your code ... */}
+            <section className="e-card section-left">
+              <h2>Price: ${product.product_price}</h2>
+              <ButtonComponent className="e-success" onClick={handleAddToCart}>
+                Add to Cart
+              </ButtonComponent>
+            </section>
+          </div>
+        </div>
+      ) : (
+        <h1>No Product found</h1>
+      )}
+    </div>
+  );
+};
+
+export default ProductPreview;
+```
+
+In this updated code, I've added a new `handleAddToCart` function that calls `setCartItems` from the cart store and adds the current product to the cart. The product is added as a key-value pair, where the key is the product's id and the value is the product object itself. This way, you can easily access any product in the cart by its id.
+
+The "Add to Cart" button now calls `handleAddToCart` when clicked. This will add the current product to the user's cart.
+
+Please note that this is a basic implementation and might need to be adjusted based on your specific requirements. For example, you might want to check if the product is already in the cart and increase its quantity instead of adding it again.
+
+harihargithub: Line#55 onwards parsing error, ; expected etd.
+
+GitHub Copilot: The error you're seeing is likely due to the fact that the `setCartItems` function is not defined in your `ProductPreview` component. You need to import it from your cart store.
+
+Here's the corrected code:
+
+```jsx
+import { useEffect, useState, useCallback } from "react";
+import { useParams } from "react-router-dom";
+import { supabase } from "../../hooks/supabase";
+import "@syncfusion/ej2-layouts/styles/material.css";
+import "@syncfusion/ej2-react-buttons/styles/material.css";
+import { ButtonComponent } from "@syncfusion/ej2-react-buttons";
+import "../productPreview.css"
+import useStore from "../store/supaStore";
+import useCartStore from "../store/cartStore"; // import the cart store
+
+const ProductPreview = () => {
+  const params = useParams();
+  const [product, setProduct] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const isLoggedIn = useStore((state) => state.isLoggedIn);
+  const setCartItems = useCartStore((state) => state.setCartItems); // get the setCartItems function from the cart store
+  const SupaBase = supabase;
+
+  // ... rest of your code ...
+
+  const handleAddToCart = () => {
+    setCartItems((prevItems) => ({ ...prevItems, [product.id]: product }));
+  };
+
+  return (
+    <div className="product-preview">
+      {isLoading ? (
+        <h1>Loading...</h1>
+      ) : isProductFetched ? (
+        <div>
+          {/* ... rest of your code ... */}
+            <section className="e-card section-left">
+              <h2>Price: ${product.product_price}</h2>
+              <ButtonComponent className="e-success" onClick={handleAddToCart}>
+                Add to Cart
+              </ButtonComponent>
+            </section>
+          </div>
+        </div>
+      ) : (
+        <h1>No Product found</h1>
+      )}
+    </div>
+  );
+};
+
+export default ProductPreview;
+```
+
+In this updated code, I've imported the `useCartStore` hook from your cart store and used it to get the `setCartItems` function. This function is then used in the `handleAddToCart` function to add the current product to the cart.
+
+Please note that the `setCartItems` function in your cart store should be defined to update the cart items in the store. If it's not defined, you'll need to add it to your cart store.
+
+harihargithub: Still the same parsing, ; missing errors so please provide complete fresh code please
+
+GitHub Copilot: Apologies for the confusion earlier. Here's the complete code for the `ProductPreview` component with the "Add to Cart" functionality:
+
+```jsx
+// productPreview.jsx under src/pages folder
+import { useEffect, useState, useCallback } from "react";
+import { useParams } from "react-router-dom";
+import { supabase } from "../../hooks/supabase";
+import "@syncfusion/ej2-layouts/styles/material.css";
+import "@syncfusion/ej2-react-buttons/styles/material.css";
+import { ButtonComponent } from "@syncfusion/ej2-react-buttons";
+import "../productPreview.css"
+import useStore from "../store/supaStore";
+import useCartStore from "../store/cartStore"; // import the cart store
+
+const ProductPreview = () => {
+  const params = useParams();
+  const [product, setProduct] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const isLoggedIn = useStore((state) => state.isLoggedIn);
+  const setCartItems = useCartStore((state) => state.setCartItems); // get the setCartItems function from the cart store
+  const SupaBase = supabase;
+
+  const fetchProduct = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const { data: productData, error: productError } = await SupaBase
+        .from("products")
+        .select()
+        .eq("id", params.id);
+
+      if (productError) {
+        throw productError;
+      }
+
+      setProduct(productData.length ? productData[0] : {});
+    } catch (e) {
+      console.error(`There was an error while fetching the product with the id:
+        ${params.id}`, e);
+    }
+    setIsLoading(false);
+  }, [params.id, SupaBase]);
+
+  useEffect(() => {
+    fetchProduct();
+  }, [fetchProduct]);
+
+  const isProductFetched = Object.keys(product).length > 0;
+
+  const userMetaData = product?.user_details?.user_metadata;
+  const userName = `${userMetaData?.firstName} ${userMetaData?.lastName}`;
+
+  const handleAddToCart = () => {
+    setCartItems((prevItems) => ({ ...prevItems, [product.id]: product }));
+  };
+
+  return (
+    <div className="product-preview">
+      {isLoading ? (
+        <h1>Loading...</h1>
+      ) : isProductFetched ? (
+        <div>
+          {/* ... rest of your code ... */}
+            <section className="e-card section-left">
+              <h2>Price: ${product.product_price}</h2>
+              {isLoggedIn && (
+                <ButtonComponent className="e-success" onClick={handleAddToCart}>
+                  Add to Cart
+                </ButtonComponent>
+              )}
+            </section>
+          </div>
+        </div>
+      ) : (
+        <h1>No Product found</h1>
+      )}
+    </div>
+  );
+};
+
+export default ProductPreview;
+```
+
+In this code, the "Add to Cart" button is only shown if the user is logged in. When this button is clicked, it calls the `handleAddToCart` function, which adds the current product to the cart using the `setCartItems` function from the cart store.
+
+Please replace `{/* ... rest of your code ... */}` with the rest of your JSX code for the product preview.
+
+harihargithub: still Parsing error: Adjacent JSX elements must be wrapped in an enclosing tageslint
+')' expected.ts(1005)  from line#69
+
+GitHub Copilot: I apologize for the confusion. The error is due to the JSX syntax. In JSX, if you're returning multiple elements, they need to be wrapped in a single parent element. 
+
+Here's the corrected code:
+
+```jsx
+// productPreview.jsx under src/pages folder
+import { useEffect, useState, useCallback } from "react";
+import { useParams } from "react-router-dom";
+import { supabase } from "../../hooks/supabase";
+import "@syncfusion/ej2-layouts/styles/material.css";
+import "@syncfusion/ej2-react-buttons/styles/material.css";
+import { ButtonComponent } from "@syncfusion/ej2-react-buttons";
+import "../productPreview.css"
+import useStore from "../store/supaStore";
+import useCartStore from "../store/cartStore"; // import the cart store
+
+const ProductPreview = () => {
+  const params = useParams();
+  const [product, setProduct] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const isLoggedIn = useStore((state) => state.isLoggedIn);
+  const setCartItems = useCartStore((state) => state.setCartItems); // get the setCartItems function from the cart store
+  const SupaBase = supabase;
+
+  const fetchProduct = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const { data: productData, error: productError } = await SupaBase
+        .from("products")
+        .select()
+        .eq("id", params.id);
+
+      if (productError) {
+        throw productError;
+      }
+
+      setProduct(productData.length ? productData[0] : {});
+    } catch (e) {
+      console.error(`There was an error while fetching the product with the id:
+        ${params.id}`, e);
+    }
+    setIsLoading(false);
+  }, [params.id, SupaBase]);
+
+  useEffect(() => {
+    fetchProduct();
+  }, [fetchProduct]);
+
+  const isProductFetched = Object.keys(product).length > 0;
+
+  const userMetaData = product?.user_details?.user_metadata;
+  const userName = `${userMetaData?.firstName} ${userMetaData?.lastName}`;
+
+  const handleAddToCart = () => {
+    setCartItems((prevItems) => ({ ...prevItems, [product.id]: product }));
+  };
+
+  return (
+    <div className="product-preview">
+      {isLoading ? (
+        <h1>Loading...</h1>
+      ) : isProductFetched ? (
+        <div>
+          <section className="e-card section-left">
+            <h2>Price: ${product.product_price}</h2>
+            {isLoggedIn && (
+              <ButtonComponent className="e-success" onClick={handleAddToCart}>
+                Add to Cart
+              </ButtonComponent>
+            )}
+          </section>
+        </div>
+      ) : (
+        <h1>No Product found</h1>
+      )}
+    </div>
+  );
+};
+
+export default ProductPreview;
+```
+
+In this code, I've removed the extra `<div>` tags that were causing the error. Now, each branch of the ternary operator in the return statement returns a single JSX element, which is the correct syntax.
+
+harihargithub: 'userName' is declared but its value is never read.ts(6133)
+'userName' is assigned a value but never used.eslintno-unused-
+
+GitHub Copilot: The `userName` variable is indeed declared and assigned a value, but it's not used anywhere in the code. This is why you're seeing the warning. 
+
+If you want to display the `userName` somewhere in your component, you can do so. For example, you could add it to the product information like this:
+
+```jsx
+<section className="e-card section-left">
+  <h2>Price: ${product.product_price}</h2>
+  <h3>Seller: {userName}</h3>
+  {isLoggedIn && (
+    <ButtonComponent className="e-success" onClick={handleAddToCart}>
+      Add to Cart
+    </ButtonComponent>
+  )}
+</section>
+```
+
+If you don't need the `userName` variable, you can simply remove it to get rid of the warning:
+
+```jsx
+// remove this line
+// const userName = `${userMetaData?.firstName} ${userMetaData?.lastName}`;
+```
+
+Remember to also remove any other unused variables to keep your code clean and avoid unnecessary warnings.
+
+harihargithub: Following the product table fields -
+public.products (
+    id bigint generated by default as identity,
+    created_at timestamp with time zone not null default now(),
+    product_details text null,
+    product_name character varying null,
+    product_price character varying null,
+    product_thumbnail text null,
+    user_details json null,
+    product_offering text null,
+    user_id character varying null,
+    constraint products_pkey primary key (id)
+  ) tablespace pg_default;
+
+GitHub Copilot: The provided code is a React component that fetches a product from a database using the Supabase client and displays some of its details. Here's a breakdown of how it works:
+
+1. The component uses the `useParams` hook from `react-router-dom` to get the `id` of the product from the URL.
+
+2. It declares a state variable `product` to hold the product data and `isLoading` to track the loading state.
+
+3. It uses the `useEffect` hook to fetch the product data from the database when the component mounts. The `fetchProduct` function is defined using the `useCallback` hook to prevent unnecessary re-renders.
+
+4. The `fetchProduct` function uses the `supabase` client to fetch the product data from the `products` table where the `id` matches the `id` from the URL. If the product is found, it is stored in the `product` state variable.
+
+5. The component renders a loading message while the product data is being fetched. Once the data is fetched, it displays the product's price, the seller's name (extracted from the `user_details` field), and an "Add to Cart" button if the user is logged in.
+
+6. The "Add to Cart" button's click handler, `handleAddToCart`, uses the `setCartItems` function from the cart store to add the current product to the cart.
+
+7. The `product` state variable is an object that should contain the fields from your `products` table, such as `product_name`, `product_price`, `product_thumbnail`, `user_details`, etc. You can display these fields in your component as needed.
+
+Please note that the `userName` is extracted from the `user_details` field assuming it's a JSON object with `firstName` and `lastName` properties. If your `user_details` structure is different, you'll need to adjust this part of the code.
+
+harihargithub: What I mean is need to include other fields too here
+
+GitHub Copilot: Sure, you can include other fields from the `product` object in your JSX. Here's an example of how you can include `product_name`, `product_thumbnail`, and `product_offering`:
+
+```jsx
+return (
+  <div className="product-preview">
+    {isLoading ? (
+      <h1>Loading...</h1>
+    ) : isProductFetched ? (
+      <div>
+        <section className="e-card section-left">
+          <h2>Name: {product.product_name}</h2>
+          <h2>Price: ${product.product_price}</h2>
+          <h3>Seller: {userName}</h3>
+          <img src={product.product_thumbnail} alt={product.product_name} />
+          <p>Offering: {product.product_offering}</p>
+          {isLoggedIn && (
+            <ButtonComponent className="e-success" onClick={handleAddToCart}>
+              Add to Cart
+            </ButtonComponent>
+          )}
+        </section>
+      </div>
+    ) : (
+      <h1>No Product found</h1>
+    )}
+  </div>
+);
+```
+
+In this code, I've added a new `<h2>` tag to display the product's name, an `<img>` tag to display the product's thumbnail, and a `<p>` tag to display the product's offering. You can adjust this code to include any other fields you need.
+
+harihargithub: Check your above code and path here @ AppRourtes - Add to Cart issue
+
+GitHub Copilot: The "Add to Cart" issue might be related to the routing of the `Cart` page. In your `AppRoutes.jsx` file, the `Cart` page is under the `/dashboard` route. This means that the `Cart` page is only accessible when the user is logged in and the URL is `/dashboard/cart`.
+
+If you want the `Cart` page to be accessible to all users, you should move the `Cart` route outside of the `/dashboard` route. Here's how you can do it:
+
+```jsx
+<Routes>
+  <Route path="/*" element={<PublicRoutes />}>
+    // other routes...
+    <Route path="cart" element={<Cart />} />
+  </Route>
+  <Route path="logout" element={<Logout />} />
+  <Route path="/dashboard/*" element={<PrivateRoutes />}>
+    // other routes...
+  </Route>
+  <Route path="/app/*" element={<PrivateRoutes />}>
+    // other routes...
+  </Route>
+  <Route path="/*" element={<NotFound />} />
+</Routes>
+```
+
+In this code, I've moved the `Cart` route from the `/dashboard` route to the public routes. Now, the `Cart` page will be accessible at the `/cart` URL to all users, regardless of whether they are logged in or not.
+
+If this doesn't solve your issue, please provide more details about the problem you're facing.
+
+harihargithub: The issue mentioned in previous message is related to ProductPreview, right? -
+// productPreview.jsx under src/pages folder
+import { useEffect, useState, useCallback } from "react";
+import { useParams } from "react-router-dom";
+import { supabase } from "../../hooks/supabase";
+import "@syncfusion/ej2-layouts/styles/material.css";
+import "@syncfusion/ej2-react-buttons/styles/material.css";
+import { ButtonComponent } from "@syncfusion/ej2-react-buttons";
+import "../productPreview.css"
+import useStore from "../store/supaStore";
+import useCartStore from "../store/cartStore"; // import the cart store
+
+const ProductPreview = () => {
+  const params = useParams();
+  const [product, setProduct] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const isLoggedIn = useStore((state) => state.isLoggedIn);
+  const setCartItems = useCartStore((state) => state.setCartItems); // get the setCartItems function from the cart store
+  const SupaBase = supabase;
+
+  const fetchProduct = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const { data: productData, error: productError } = await SupaBase
+        .from("products")
+        .select()
+        .eq("id", params.id);
+
+      if (productError) {
+        throw productError;
+      }
+
+      setProduct(productData.length ? productData[0] : {});
+    } catch (e) {
+      console.error(`There was an error while fetching the product with the id:
+        ${params.id}`, e);
+    }
+    setIsLoading(false);
+  }, [params.id, SupaBase]);
+
+  useEffect(() => {
+    fetchProduct();
+  }, [fetchProduct]);
+
+  const isProductFetched = Object.keys(product).length > 0;
+
+  const userMetaData = product?.user_details?.user_metadata;
+  const userName = `${userMetaData?.firstName} ${userMetaData?.lastName}`;
+
+  const handleAddToCart = () => {
+    setCartItems((prevItems) => ({ ...prevItems, [product.id]: product }));
+  };
+
+  return (
+  <div className="product-preview">
+    {isLoading ? (
+      <h1>Loading...</h1>
+    ) : isProductFetched ? (
+      <div>
+        <section className="e-card section-left">
+          <h2>Name: {product.product_name}</h2>
+          <h2>Price: ${product.product_price}</h2>
+          <h3>Seller: {userName}</h3>
+          <img src={product.product_thumbnail} alt={product.product_name} />
+          <p>Offering: {product.product_offering}</p>
+          {isLoggedIn && (
+            <ButtonComponent className="e-success" onClick={handleAddToCart}>
+              Add to Cart
+            </ButtonComponent>
+          )}
+        </section>
+      </div>
+    ) : (
+      <h1>No Product found</h1>
+    )}
+  </div>
+);
+};
+
+export default ProductPreview;
+
+GitHub Copilot: Yes, the issue is related to the `ProductPreview` component. The `handleAddToCart` function is adding the product to the cart, but there's no navigation to the cart page after the product is added. 
+
+You can use the `useNavigate` hook from `react-router-dom` to navigate to the cart page after the product is added. Here's how you can do it:
+
+```jsx
+import { useNavigate } from 'react-router-dom';
+
+// ...
+
+const ProductPreview = () => {
+  // ...
+
+  const navigate = useNavigate(); // add this line
+
+  const handleAddToCart = () => {
+    setCartItems((prevItems) => ({ ...prevItems, [product.id]: product }));
+    navigate('/dashboard/cart'); // add this line
+  };
+
+  // ...
+};
+```
+
+In this code, I've imported the `useNavigate` hook and used it to create a `navigate` function. Then, I've called this function in the `handleAddToCart` function to navigate to the cart page after the product is added to the cart.
+
+Please note that this will navigate to the cart page under the `/dashboard` route. If you want to navigate to a different route, you should adjust the argument to the `navigate` function accordingly.
+
+harihargithub: navigate is not defined
+
+GitHub Copilot: Apologies for the confusion. It seems the `navigate` function was not defined in your code. You need to import the `useNavigate` hook from `react-router-dom` and use it to define the `navigate` function. Here's how you can do it:
+
+```jsx
+import { useNavigate } from 'react-router-dom';
+
+// ...
+
+const ProductPreview = () => {
+  // ...
+
+  const navigate = useNavigate(); // define the navigate function
+
+  const handleAddToCart = () => {
+    setCartItems((prevItems) => ({ ...prevItems, [product.id]: product }));
+    navigate('/dashboard/cart'); // navigate to the cart page
+  };
+
+  // ...
+};
+```
+
+In this code, I've imported the `useNavigate` hook and used it to define the `navigate` function. Then, I've used this function in the `handleAddToCart` function to navigate to the cart page after the product is added to the cart.
+
+harihargithub: Uncaught SyntaxError: The requested module '/node_modules/.vite/deps/react-router-dom.js?v=2d53afc4' does not provide an export named 'navigate' (at productPreview.jsx:11:10)
+
+GitHub Copilot: I apologize for the confusion. The `navigate` function is not directly exported from `react-router-dom`. Instead, you should use the `useNavigate` hook to get the `navigate` function. Here's how you can do it:
+
+```jsx
+import { useNavigate } from 'react-router-dom';
+
+// ...
+
+const ProductPreview = () => {
+  // ...
+
+  const navigate = useNavigate(); // define the navigate function
+
+  const handleAddToCart = () => {
+    setCartItems((prevItems) => ({ ...prevItems, [product.id]: product }));
+    navigate('/dashboard/cart'); // navigate to the cart page
+  };
+
+  // ...
+};
+```
+
+In this code, I've imported the `useNavigate` hook and used it to define the `navigate` function. Then, I've used this function in the `handleAddToCart` function to navigate to the cart page after the product is added to the cart.
+
+harihargithub: http://localhost:5173/product/1 shows only when not logged-in that too without add2cart button
+
+// productPreview.jsx under src/pages folder
+import { useEffect, useState, useCallback } from "react";
+import { useParams } from "react-router-dom";
+import { supabase } from "../../hooks/supabase";
+import "@syncfusion/ej2-layouts/styles/material.css";
+import "@syncfusion/ej2-react-buttons/styles/material.css";
+import { ButtonComponent } from "@syncfusion/ej2-react-buttons";
+import "../productPreview.css"
+import useStore from "../store/supaStore";
+import useCartStore from "../store/cartStore"; // import the cart store
+import { useNavigate } from "react-router-dom";
+
+const ProductPreview = () => {
+  const params = useParams();
+  const [product, setProduct] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const isLoggedIn = useStore((state) => state.isLoggedIn);
+  const setCartItems = useCartStore((state) => state.setCartItems); // get the setCartItems function from the cart store
+  const SupaBase = supabase;
+
+  const fetchProduct = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const { data: productData, error: productError } = await SupaBase
+        .from("products")
+        .select()
+        .eq("id", params.id);
+
+      if (productError) {
+        throw productError;
+      }
+
+      setProduct(productData.length ? productData[0] : {});
+    } catch (e) {
+      console.error(`There was an error while fetching the product with the id:
+        ${params.id}`, e);
+    }
+    setIsLoading(false);
+  }, [params.id, SupaBase]);
+
+  useEffect(() => {
+    fetchProduct();
+  }, [fetchProduct]);
+
+  const isProductFetched = Object.keys(product).length > 0;
+
+  const userMetaData = product?.user_details?.user_metadata;
+  const userName = `${userMetaData?.firstName} ${userMetaData?.lastName}`;
+
+  const navigate = useNavigate(); // add this line
+
+  const handleAddToCart = () => {
+    setCartItems((prevItems) => ({ ...prevItems, [product.id]: product }));
+    navigate('/dashboard/cart'); // add this line
+  };
+
+  return (
+  <div className="product-preview">
+    {isLoading ? (
+      <h1>Loading...</h1>
+    ) : isProductFetched ? (
+      <div>
+        <section className="e-card section-left">
+          <h2>Name: {product.product_name}</h2>
+          <h2>Price: ${product.product_price}</h2>
+          <h3>Seller: {userName}</h3>
+          <img src={product.product_thumbnail} alt={product.product_name} />
+          <p>Offering: {product.product_offering}</p>
+          {isLoggedIn && (
+            <ButtonComponent className="e-success" onClick={handleAddToCart}>
+              Add to Cart
+            </ButtonComponent>
+          )}
+        </section>
+      </div>
+    ) : (
+      <h1>No Product found</h1>
+    )}
+  </div>
+);
+};
+
+export default ProductPreview;
+
+GitHub Copilot: The issue seems to be with the routing configuration. The `ProductPreview` component is under the `PublicRoutes` which means it's accessible only when the user is not logged in. 
+
+To make it accessible for both logged in and not logged in users, you should move the `ProductPreview` route outside of the `PublicRoutes` and `PrivateRoutes`. Here's how you can do it:
+
+```jsx
+const AppRoutes = () => {
+  return (
+    <BrowserRouter>
+      <Navbar />
+      <Routes>
+        <Route path="product/:id" element={<ProductPreview />} /> {/* Move this line here */}
+        <Route path="/*" element={<PublicRoutes />}>
+          <Route index element={<Browse />} />
+          <Route path="product-list" element={<ProductList />} />
+          <Route path="login" element={<Login />} />
+          <Route path="register" element={<Signup />} />
+          <Route path="signup" element={<Signup />} />
+          <Route path="reset-password" element={<ResetPassword />} />
+          <Route path="update-password" element={<UpdatePassword />} />
+          <Route path="browse" element={<Browse />} />
+        </Route>
+        <Route path="logout" element={<Logout />} />
+        <Route path="/dashboard/*" element={<PrivateRoutes />}>
+          <Route index element={<Dashboard />} />
+          <Route path="manage-products" element={<ManageProducts />} />
+          <Route path="cart" element={<Cart />} />
+        </Route>
+        <Route path="/app/*" element={<PrivateRoutes />}>
+          <Route path="product-add" element={<h1>Product Add</h1>} />
+          <Route path="checkout" element={<Checkout />} />
+          <Route path="thank-you" element={<ThankYou />} />
+        </Route>
+        <Route path="/*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  );
+};
+
+export default AppRoutes;
+```
+
+This way, the `ProductPreview` page will be accessible for both logged in and not logged in users. The Add to Cart button will be visible only for logged in users as it's rendered conditionally based on the `isLoggedIn` state.
+
+harihargithub: http://localhost:5173/product/1   -  add2cart taking to http://localhost:5173/dashboard/cart but cart is empty -
+
+import "../productList.css";
+import useCartStore from "../store/cartStore";
+import useStore from "../store/supaStore";
+import BrowserWrapper from "../components/browserWrapper";
+import DataGrid from "../components/DataGrid/index";
+import { Link } from "react-router-dom";
+import "../cart.css";
+import PropTypes from "prop-types";
+
+const Cart = () => {
+  const isLoggedIn = useStore((state) => state.isLoggedIn);
+  const { items, updateCartItems } = useCartStore((state) => state);
+
+  const removeCartItems = (product_id) => {
+    const itemsClone = { ...items };
+    delete itemsClone[product_id];
+    updateCartItems(itemsClone);
+  };
+
+  const ActionsTemplate = ({ id }) => {
+  return (
+    <span onClick={() => removeCartItems(id)} className="edit-product">
+      Remove
+    </span>
+  );
+};
+
+ActionsTemplate.propTypes = {
+    id: PropTypes.number.isRequired,
+  };
+
+  const cartItems = Object.keys(items).map((e) => items[e]);
+
+  return (
+    <BrowserWrapper>
+      <div className="cart-items">
+        <DataGrid data={cartItems} ActionsTemplate={ActionsTemplate} />
+        <div className="purchase-area">
+          {isLoggedIn ? (
+            <Link to={items.length === 0 ? "" : "/checkout"}>Continue to purchase</Link>
+          ) : (
+            <Link to="/login">Login to purchase</Link>
+          )}
+        </div>
+      </div>
+    </BrowserWrapper>
+  );
+};
+
+export default Cart;
+
+GitHub Copilot: The issue seems to be with how you're storing and retrieving items from the cart. You're storing items in the cart as an object with the product id as the key. However, when you're trying to display the items in the cart, you're treating `items` as an array with the `length` property. Objects in JavaScript don't have a `length` property, which is why the cart appears to be empty even when it's not.
+
+You should change the line where you're checking if the cart is empty to use `Object.keys(items).length` instead of `items.length`. Here's the corrected code:
+
+```jsx
+return (
+  <BrowserWrapper>
+    <div className="cart-items">
+      <DataGrid data={cartItems} ActionsTemplate={ActionsTemplate} />
+      <div className="purchase-area">
+        {isLoggedIn ? (
+          <Link to={Object.keys(items).length === 0 ? "" : "/checkout"}>Continue to purchase</Link>
+        ) : (
+          <Link to="/login">Login to purchase</Link>
+        )}
+      </div>
+    </div>
+  </BrowserWrapper>
+);
+```
+
+In this code, `Object.keys(items).length` will give you the number of keys in the `items` object, which is equivalent to the number of items in the cart. If the number of items is 0, the link will be disabled. Otherwise, it will link to the checkout page.
+
+harihargithub: implemented suggested code in your above message but still no record found in dashboard/cart after clicking on add2cart for product1
+
+GitHub Copilot: The issue might be related to how you're managing state in your application. If you're using Zustand for state management, the state is not persisted across page reloads or navigation by default. This means that when you navigate to a different page, the state is reset and the items you added to the cart are lost.
+
+To solve this issue, you can use the `persist` middleware provided by Zustand. This middleware allows you to store the state in `localStorage` and retrieve it when the page is reloaded or navigated.
+
+Here's how you can modify your cart store to use the `persist` middleware:
+
+```jsx
+import create from 'zustand';
+import { persist } from 'zustand/middleware';
+
+export const useCartStore = create(persist(
+  (set) => ({
+    items: {},
+    setCartItems: (items) => set({ items }),
+    updateCartItems: (items) => set((state) => ({ items: { ...state.items, ...items } })),
+  }),
+  {
+    name: 'cart-storage', // unique name
+    getStorage: () => localStorage, // (optional) by default the 'localStorage' is used
+  }
+));
+```
+
+In this code, I've wrapped the store configuration with the `persist` middleware. This middleware takes two arguments: the store configuration and an options object. The options object includes the `name` property, which is a unique name for the storage, and the `getStorage` property, which is a function that returns the storage to be used (in this case, `localStorage`).
+
+Now, the items you add to the cart should be persisted across page reloads and navigation.
+
+harihargithub: useCartStore is shared and now advise on suggestion made in your previous message
+
+GitHub Copilot: Your `cartStore.jsx` file is already set up correctly with Zustand and its persist middleware. The state of the cart is being persisted in the local storage under the key "user-cart". 
+
+If you're still not seeing the items in the cart after navigating to the cart page, the issue might be elsewhere. 
+
+One potential issue could be in the `handleAddToCart` function in your `ProductPreview` component. You're storing each product in the cart as an object with the product id as the key. However, you're spreading the product object into the state, which might be causing issues. 
+
+Here's how you can modify the `handleAddToCart` function to fix this issue:
+
+```jsx
+const handleAddToCart = () => {
+  setCartItems((prevItems) => ({ ...prevItems, [product.id]: product }));
+  navigate('/dashboard/cart');
+};
+```
+
+In this code, I'm using the product id as the key and the entire product object as the value. This way, each product in the cart will be a separate entry in the `items` object in the state.
+
+If you're still having issues, please provide more details about the problem or share more of your code so I can better assist you.
+
+harihargithub: Suggestion in your above messaage already in place, right?
+
+GitHub Copilot: Yes, you're correct. The `handleAddToCart` function in your `ProductPreview` component is already correctly updating the cart items in the state and navigating to the cart page. 
+
+If the cart is still empty after adding a product, the issue might be with how you're displaying the items in the `Cart` component. 
+
+In your `Cart` component, you're mapping over the keys of the `items` object to create an array of cart items:
+
+```jsx
+const cartItems = Object.keys(items).map((e) => items[e]);
+```
+
+Then, you're passing this array to the `DataGrid` component:
+
+```jsx
+<DataGrid data={cartItems} ActionsTemplate={ActionsTemplate} />
+```
+
+If the `DataGrid` component is not correctly displaying the items, the issue might be with this component. Could you please share the code of the `DataGrid` component?
+
+harihargithub: Reference your above message DataGrid is shared now
+
+GitHub Copilot: The `DataGrid` component seems to be set up correctly. It's using the Syncfusion React Grid library to display a table of data. The data is passed in as a prop and each row in the table corresponds to an item in the data array.
+
+One potential issue could be with the `field` properties of the `ColumnDirective` components. These properties should match the properties of the objects in the `data` array. If they don't match, the corresponding columns in the table will be empty.
+
+In your `Cart` component, you're creating the `cartItems` array like this:
+
+```jsx
+const cartItems = Object.keys(items).map((e) => items[e]);
+```
+
+Each item in the `cartItems` array is an object with the properties of a product. These properties should match the `field` properties of the `ColumnDirective` components in the `DataGrid` component.
+
+For example, if a product object looks like this:
+
+```jsx
+{
+  id: 1,
+  name: 'Product 1',
+  price: 100,
+  thumbnail: 'https://example.com/product1.jpg',
+  sale: 10,
+  profit: 90
+}
+```
+
+The `field` properties of the `ColumnDirective` components should be `id`, `name`, `price`, `thumbnail`, `sale`, and `profit`.
+
+If the properties of the product objects don't match the `field` properties of the `ColumnDirective` components, you should adjust either the product objects or the `ColumnDirective` components to make them match.
+
+If this doesn't solve the issue, please provide more details about the problem or share more of your code so I can better assist you.is an array of objects that each have a `product_thumbnail`, `product_name`, `product_price`, `product_sale`, and `product_profit` field.

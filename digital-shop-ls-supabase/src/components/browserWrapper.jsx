@@ -1,3 +1,4 @@
+// browserWrapper.jsx under src/components folder
 import "@syncfusion/ej2-layouts/styles/material.css";
 import "@syncfusion/ej2-react-buttons/styles/material.css";
 import "@syncfusion/ej2-base/styles/material.css";

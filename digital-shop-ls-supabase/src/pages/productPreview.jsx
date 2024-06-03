@@ -16,6 +16,7 @@ const ProductPreview = () => {
   const [isLoading, setIsLoading] = useState(true);
   const isLoggedIn = useStore((state) => state.isLoggedIn);
   const setCartItems = useCartStore((state) => state.setCartItems); // get the setCartItems function from the cart store
+  const cartItems = useCartStore((state) => state.cartItems); // get the cartItems from the cart store
   const SupaBase = supabase;
 
   const fetchProduct = useCallback(async () => {
@@ -50,8 +51,11 @@ const ProductPreview = () => {
   const navigate = useNavigate(); // add this line
 
   const handleAddToCart = () => {
-    setCartItems((prevItems) => ({ ...prevItems, [product.id]: product }));
-    navigate('/dashboard/cart'); // add this line
+    console.log('Product to add to cart:', product);
+    const newItems = { ...cartItems, [product.id]: product };
+    console.log('Cart items after adding:', newItems);
+    setCartItems(newItems);
+    navigate('/dashboard/cart');
   };
 
   return (

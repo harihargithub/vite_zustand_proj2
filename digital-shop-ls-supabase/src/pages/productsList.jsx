@@ -75,7 +75,10 @@ const ProductList = () => {
   const [productToEdit, setProductToEdit] = useState({});
   const [showModal, setShowModal] = useState(false);
   useProducts();
-  const productsList = productStore((state) => state.productsList);
+  const productsList = productStore((state) => state.productsList).map(product => ({
+    ...product,
+    product_price: Number(product.product_price)
+  }));
 
   return (
     <div className="product-list">

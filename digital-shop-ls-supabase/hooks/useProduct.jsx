@@ -1,3 +1,4 @@
+//useProduct.jsx under hooks folder
 import { useEffect } from "react";
 import { supabase } from "./supabase";
 import productStore from "../src/store/products";
