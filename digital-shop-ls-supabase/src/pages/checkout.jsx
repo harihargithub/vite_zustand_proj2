@@ -140,7 +140,8 @@ const ShippingForm = () => {
   e.preventDefault();
 
   try {
-    const session = supabase.auth.session;
+    const { data, error: userError } = await supabase.auth.getSession();
+    const { session } = data;
 
     const address = JSON.stringify(state);
     const products = JSON.stringify(items);

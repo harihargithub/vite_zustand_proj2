@@ -51,9 +51,11 @@ const ProductPreview = () => {
   const navigate = useNavigate(); // add this line
 
   const handleAddToCart = () => {
+    console.log(supabase.auth.user);
     console.log('Product to add to cart:', product);
     const newItems = { ...cartItems, [product.id]: product };
     console.log('Cart items after adding:', newItems);
+    console.log(supabase.auth.user);
     setCartItems(newItems);
     navigate('/dashboard/cart');
   };
