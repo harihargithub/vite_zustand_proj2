@@ -1,7 +1,7 @@
-//useProduct.jsx under hooks folder
-import { useEffect } from "react";
+//useProduct.jsx under hooks folder that contains the useProducts hook that fetches the products list from the Supabase database and sets the products list in the products store. The useProducts hook uses the supabase client instance to interact with the Supabase database. The useProducts hook returns an empty object or value if needed because it only fetches the products list and sets the products list in the products store so it does not need to return anything.
 import { supabase } from "./supabase";
 import productStore from "../src/store/products";
+import { useEffect } from "react";
 
 const useProducts = () => {
   const setProductsList = productStore((state) => state.setProductsList);
@@ -23,6 +23,7 @@ const useProducts = () => {
         if (productError) throw productError;
 
         setProductsList(productData);
+        console.log('Data fetched:', productData); // Log the data here
       } catch (e) {
         console.error("Error while fetching products list", e);
       }

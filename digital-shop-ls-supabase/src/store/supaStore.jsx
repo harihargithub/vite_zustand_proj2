@@ -1,15 +1,10 @@
-//src/supaStore.jsx
+//src/supaStore.jsx a zustand store that stores the user state and provides actions to update the user state and logout the user.
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 // import { createClient } from '@supabase/supabase-js';
 import { supabase as importedSupabase } from '../../hooks/supabase';
 
 export const supabase = importedSupabase; // export the supabase instance
-
-// const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-// const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_KEY;
-
-// export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let store = (set) => ({
   supabase,
@@ -35,7 +30,7 @@ let store = (set) => ({
   },
 });
 
-//persist the state with key "randomKey"
+//persist the state with key "randomKey" ie. the state will be stored in the local storage with the key "randomKey"
 store = persist(store, { name: 'user-supaStore' });
 
 //create the store

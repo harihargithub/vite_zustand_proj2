@@ -1,4 +1,4 @@
-// hooks/auth.jsx
+// hooks/auth.jsx a file that contains the useAuth hook that provides functions to sign up and log in a user. The useAuth hook uses the supabase client instance to interact with the Supabase database. The useAuth hook returns the signupData, loginData, and error states that can be used to display the signup and login data and any errors that occur during the signup and login process.
 import { supabase } from '../hooks/supabase'; // Import supabase as a named export
 import useStore from '../src/store/supaStore';
 import { useState } from 'react';
@@ -8,8 +8,6 @@ const useAuth = () => {
   const [signupData, setSignupData] = useState(null);
   const [loginData, setLoginData] = useState(null);
   const [error, setError] = useState(null);
-
-  // const supabase = useSupabase();
 
   const setUserState = useStore((state) => state.setUserState);
 

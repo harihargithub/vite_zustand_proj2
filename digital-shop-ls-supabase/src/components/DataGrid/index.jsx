@@ -17,6 +17,7 @@ import {
   Inject,
   Page,
 } from "@syncfusion/ej2-react-grids";
+import { useEffect } from 'react';
 
 const DefaultValueTemplate = (props) => {
   return Number(props[props.column.field]) || 0;
@@ -45,6 +46,9 @@ ThumbnailTemplate.propTypes = {
 };
 
 const DataGrid = ({ data, ActionsTemplate }) => {
+  useEffect(() => {
+    console.log('Data received:', data);
+  }, [data]);
   const ActionsTemplateWrapper = ({ id }) => <ActionsTemplate id={id} />;
 
 ActionsTemplateWrapper.propTypes = {

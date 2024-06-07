@@ -51,6 +51,7 @@ const Signup = () => {
 
   const handleEmailChange = useCallback((text) => {
     setEmail(text);
+    console.log(text);
     const debounced = debounce(() => {
       const isValid = isValidEmail(text);
       setInvalidEmail(!isValid);

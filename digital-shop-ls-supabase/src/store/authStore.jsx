@@ -1,4 +1,4 @@
-// authStore.jsx
+// authStore.jsx a zustand store that stores the user authentication state and provides actions to login, logout, register, and reset the password. The store uses the supabase instance to interact with the Supabase database.
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import supabase from './supaStore'

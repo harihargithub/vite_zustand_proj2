@@ -9157,3 +9157,2463 @@ The `field` properties of the `ColumnDirective` components should be `id`, `name
 If the properties of the product objects don't match the `field` properties of the `ColumnDirective` components, you should adjust either the product objects or the `ColumnDirective` components to make them match.
 
 If this doesn't solve the issue, please provide more details about the problem or share more of your code so I can better assist you.is an array of objects that each have a `product_thumbnail`, `product_name`, `product_price`, `product_sale`, and `product_profit` field.
+
+harihargithub: Though add2card going to /dashboard/cart item is not getting added to the card and provide below all relevant code snippets for fix please -
+// index.jsx under src/components/DataGrid folder
+import PropTypes from 'prop-types';
+import "@syncfusion/ej2-base/styles/material.css";
+import "@syncfusion/ej2-buttons/styles/material.css";
+import "@syncfusion/ej2-calendars/styles/material.css";
+import "@syncfusion/ej2-dropdowns/styles/material.css";
+import "@syncfusion/ej2-inputs/styles/material.css";
+import "@syncfusion/ej2-navigations/styles/material.css";
+import "@syncfusion/ej2-popups/styles/material.css";
+import "@syncfusion/ej2-splitbuttons/styles/material.css";
+import "@syncfusion/ej2-notifications/styles/material.css";
+import "@syncfusion/ej2-react-grids/styles/material.css";
+import {
+  ColumnDirective,
+  ColumnsDirective,
+  GridComponent,
+  Inject,
+  Page,
+} from "@syncfusion/ej2-react-grids";
+
+const DefaultValueTemplate = (props) => {
+  return props[props.column.field] || 0;
+};
+
+DefaultValueTemplate.propTypes = {
+    column: PropTypes.shape({
+        field: PropTypes.string.isRequired,
+    }).isRequired,
+};
+
+const ThumbnailTemplate = (props) => {
+  return (
+    <img
+      src={props.product_thumbnail}
+      alt={props.product_name}
+      title={props.product_name}
+      style={{ maxWidth: "50px" }}
+    />
+  );
+};
+
+ThumbnailTemplate.propTypes = {
+    product_thumbnail: PropTypes.string.isRequired,
+    product_name: PropTypes.string.isRequired,
+};
+
+const DataGrid = ({ data, ActionsTemplate }) => {
+  const ActionsTemplateWrapper = ({ id }) => <ActionsTemplate id={id} />;
+
+ActionsTemplateWrapper.propTypes = {
+  id: PropTypes.number.isRequired,
+};
+
+  return (
+    <GridComponent
+      dataSource={data}
+      allowPaging={true}
+      pageSettings={{ pageSize: 6 }}
+    >
+      <ColumnsDirective>
+        <ColumnDirective
+          field="product_thumbnail"
+          width="120"
+          textAlign="Right"
+          template={ThumbnailTemplate}
+          headerText="Thumbnail"
+        />
+        <ColumnDirective field="product_name" width="100" headerText="Name" />
+        <ColumnDirective
+          field="product_price"
+          width="100"
+          textAlign="Right"
+          headerText="Price"
+          template={DefaultValueTemplate}
+        />
+        <ColumnDirective
+          field="product_sale"
+          width="100"
+          format="C2"
+          textAlign="Right"
+          headerText="Sale"
+          template={DefaultValueTemplate}
+        />
+        <ColumnDirective
+          field="product_profit"
+          width="100"
+          headerText="Profit"
+          template={DefaultValueTemplate}
+        />
+        <ColumnDirective
+          field="action"
+          width="100"
+          template={ActionsTemplateWrapper}
+          headerText="Action"
+        />
+      </ColumnsDirective>
+      <Inject services={[Page]} />
+    </GridComponent>
+  );
+};
+
+DataGrid.propTypes = {
+  data: PropTypes.array.isRequired,
+  ActionsTemplate: PropTypes.func.isRequired,
+};
+
+export default DataGrid;
+
+// productPreview.jsx under src/pages folder
+import { useEffect, useState, useCallback } from "react";
+import { useParams } from "react-router-dom";
+import { supabase } from "../../hooks/supabase";
+import "@syncfusion/ej2-layouts/styles/material.css";
+import "@syncfusion/ej2-react-buttons/styles/material.css";
+import { ButtonComponent } from "@syncfusion/ej2-react-buttons";
+import "../productPreview.css"
+import useStore from "../store/supaStore";
+import useCartStore from "../store/cartStore"; // import the cart store
+import { useNavigate } from "react-router-dom";
+
+const ProductPreview = () => {
+  const params = useParams();
+  const [product, setProduct] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const isLoggedIn = useStore((state) => state.isLoggedIn);
+  const setCartItems = useCartStore((state) => state.setCartItems); // get the setCartItems function from the cart store
+  const SupaBase = supabase;
+
+  const fetchProduct = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const { data: productData, error: productError } = await SupaBase
+        .from("products")
+        .select()
+        .eq("id", params.id);
+
+      if (productError) {
+        throw productError;
+      }
+
+      setProduct(productData.length ? productData[0] : {});
+    } catch (e) {
+      console.error(`There was an error while fetching the product with the id:
+        ${params.id}`, e);
+    }
+    setIsLoading(false);
+  }, [params.id, SupaBase]);
+
+  useEffect(() => {
+    fetchProduct();
+  }, [fetchProduct]);
+
+  const isProductFetched = Object.keys(product).length > 0;
+
+  const userMetaData = product?.user_details?.user_metadata;
+  const userName = `${userMetaData?.firstName} ${userMetaData?.lastName}`;
+
+  const navigate = useNavigate(); // add this line
+
+  const handleAddToCart = () => {
+    setCartItems((prevItems) => ({ ...prevItems, [product.id]: product }));
+    navigate('/dashboard/cart'); // add this line
+  };
+
+  return (
+  <div className="product-preview">
+    {isLoading ? (
+      <h1>Loading...</h1>
+    ) : isProductFetched ? (
+      <div>
+        <section className="e-card section-left">
+          <h2>Name: {product.product_name}</h2>
+          <h2>Price: ${product.product_price}</h2>
+          <h3>Seller: {userName}</h3>
+          <img src={product.product_thumbnail} alt={product.product_name} />
+          <p>Offering: {product.product_offering}</p>
+          {isLoggedIn && (
+            <ButtonComponent className="e-success" onClick={handleAddToCart}>
+              Add to Cart
+            </ButtonComponent>
+          )}
+        </section>
+      </div>
+    ) : (
+      <h1>No Product found</h1>
+    )}
+  </div>
+);
+};
+
+export default ProductPreview;
+
+
+// cart.jsx under src/pages folder
+import "../productList.css";
+import useCartStore from "../store/cartStore";
+import useStore from "../store/supaStore";
+import BrowserWrapper from "../components/browserWrapper";
+import DataGrid from "../components/DataGrid/index";
+import { Link } from "react-router-dom";
+import "../cart.css";
+import PropTypes from "prop-types";
+
+const Cart = () => {
+  const isLoggedIn = useStore((state) => state.isLoggedIn);
+  const { items, updateCartItems } = useCartStore((state) => state);
+
+  const removeCartItems = (product_id) => {
+    const itemsClone = { ...items };
+    delete itemsClone[product_id];
+    updateCartItems(itemsClone);
+  };
+
+  const ActionsTemplate = ({ id }) => {
+  return (
+    <span onClick={() => removeCartItems(id)} className="edit-product">
+      Remove
+    </span>
+  );
+};
+
+ActionsTemplate.propTypes = {
+    id: PropTypes.number.isRequired,
+  };
+
+  const cartItems = Object.keys(items).map((e) => items[e]);
+
+  return (
+  <BrowserWrapper>
+    <div className="cart-items">
+      <DataGrid data={cartItems} ActionsTemplate={ActionsTemplate} />
+      <div className="purchase-area">
+        {isLoggedIn ? (
+          <Link to={Object.keys(items).length === 0 ? "" : "/checkout"}>Continue to purchase</Link>
+        ) : (
+          <Link to="/login">Login to purchase</Link>
+        )}
+      </div>
+    </div>
+  </BrowserWrapper>
+);
+};
+
+export default Cart;
+
+// browserWrapper.jsx under src/components folder
+import "@syncfusion/ej2-layouts/styles/material.css";
+import "@syncfusion/ej2-react-buttons/styles/material.css";
+import "@syncfusion/ej2-base/styles/material.css";
+import "@syncfusion/ej2-react-navigations/styles/material.css";
+import "../wrapper.css";
+import { Link, NavLink } from "react-router-dom";
+import useStore from "../store/supaStore";
+import useCartStore from "../store/cartStore";
+import PropTypes from "prop-types";
+
+const BrowserWrapper = ({ children }) => {
+  const { isLoggedIn, firstName } = useStore((state) => state);
+  const items = useCartStore((state) => state.items);
+  
+  return (
+    <div className="wrapper">
+      <header>
+        <Link className="title" to="/" title="visit dashboard">
+          Geva Digital Shop
+        </Link>
+        <div>
+          {isLoggedIn ? (
+            <span className="username">Hello {firstName}</span>
+          ) : (
+            <NavLink
+              to="/login"
+              className={({ isActive }) => (isActive ? "active" : "")}
+            >
+              Login
+            </NavLink>
+          )}
+          /  
+          <NavLink
+            to="/cart"
+            className={({ isActive }) => (isActive ? "active" : "")}
+          >
+            Cart ({Object.keys(items).length})
+          </NavLink>
+        </div>
+      </header>
+      <main>{children}</main>
+    </div>
+  );
+};
+
+BrowserWrapper.propTypes = {
+    children: PropTypes.node.isRequired,
+    };
+
+export default BrowserWrapper;
+
+//products.jsx under src/store folder
+import { create } from "zustand";
+
+let store = (set) => ({
+  productsList: [],
+  setProductsList: (productsList) => set(() => ({ productsList })),
+});
+
+//create the store
+let productStore = create(store);
+
+export default productStore;
+
+//cartStore.jsx under src/store folder
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+
+let store = (set) => ({
+  items: {},
+  setCartItems: (item) =>
+	set((state) => ({ items: { ...state.items, ...item } })),
+  updateCartItems: (items) => set(() => ({ items })),
+  resetCart: () => set(() => ({ items: {} })),
+});
+
+//persist the state with key "randomKey"
+store = persist(store, { name: "user-cart" });
+
+//create the store
+let useCartStore = create(store);
+
+export default useCartStore;
+
+   - Please advise the next file you need to see from the project structure
+
+
+
+GitHub Copilot: The code you provided seems to be correct for adding items to the cart. However, there might be a problem with the state persistence of the cart items. The Zustand `persist` middleware you're using should keep the cart items in the local storage of the browser across page reloads.
+
+Here's a possible issue: If the local storage is cleared or not accessible for some reason (like in incognito mode in some browsers), the cart items might not persist.
+
+To debug this issue, you can do the following:
+
+1. Check if the items are correctly added to the Zustand store when the "Add to Cart" button is clicked. You can do this by logging the state of the cart store after calling `setCartItems`.
+
+2. Check if the items are correctly persisted in the local storage. You can do this by inspecting the local storage in your browser's developer tools.
+
+3. Check if the items are correctly retrieved from the local storage when the page is reloaded. You can do this by logging the state of the cart store when the application starts.
+
+Here's how you can add the logging:
+
+```javascript
+// productPreview.jsx
+const handleAddToCart = () => {
+  setCartItems((prevItems) => {
+    const newItems = { ...prevItems, [product.id]: product };
+    console.log('Cart items after adding:', newItems); // Add this line
+    return newItems;
+  });
+  navigate('/dashboard/cart');
+};
+
+// cartStore.jsx
+let store = (set) => ({
+  items: {},
+  setCartItems: (item) => {
+    set((state) => {
+      const newItems = { ...state.items, ...item };
+      console.log('Cart items in store after setting:', newItems); // Add this line
+      return { items: newItems };
+    });
+  },
+  updateCartItems: (items) => set(() => ({ items })),
+  resetCart: () => set(() => ({ items: {} })),
+});
+
+store = persist(store, { name: "user-cart" });
+
+let useCartStore = create(store);
+
+console.log('Cart items in store after creating:', useCartStore.getState().items); // Add this line
+```
+
+If the items are not correctly added to the store or not correctly persisted in the local storage, you might need to check your Zustand configuration or the logic of adding items to the cart. If the items are not correctly retrieved from the local storage, you might need to check the Zustand `persist` middleware configuration.
+
+harihargithub: logged - Cart items in store after creating: - but http://localhost:5173/dashboard/cart says no record to display
+
+GitHub Copilot: It seems like the cart items are not being added correctly to the Zustand store or they are not being retrieved correctly from the store.
+
+To debug this, you can add a button in your cart page that logs the current state of the cart store when clicked. Here's how you can do it:
+
+```jsx
+import React from 'react';
+import useCartStore from '../store/cartStore';
+
+function CartPage() {
+  const items = useCartStore((state) => state.items);
+
+  const handleDebug = () => {
+    console.log('Current cart items:', items);
+  };
+
+  return (
+    <div>
+      {/* Your existing cart page code... */}
+      <button onClick={handleDebug}>Debug Cart Items</button>
+    </div>
+  );
+}
+
+export default CartPage;
+```
+
+After adding this button, go to your cart page, click the "Debug Cart Items" button, and check the console. If the cart items are correctly added to the store, you should see them in the console. If not, there might be a problem with the way you're adding items to the cart.
+
+If the cart items are correctly added to the store but not displayed in the cart page, there might be a problem with the way you're retrieving items from the store in your cart page. In this case, you might need to check your cart page code.
+
+harihargithub: You suggestion in your previous message sharing cart.jsx
+
+GitHub Copilot: The `cart.jsx` file you shared seems to be correctly retrieving the cart items from the Zustand store and displaying them using the `DataGrid` component. The `removeCartItems` function also seems to be correctly removing items from the cart.
+
+However, if the cart page is still not displaying the items, there might be a problem with the `DataGrid` component or the way the `cartItems` array is passed to it.
+
+To debug this, you can log the `cartItems` array before passing it to the `DataGrid` component and check if it contains the correct items. Here's how you can do it:
+
+```jsx
+// cart.jsx
+const cartItems = Object.keys(items).map((e) => items[e]);
+
+console.log('Cart items before passing to DataGrid:', cartItems); // Add this line
+
+return (
+  <BrowserWrapper>
+    {/* ... */}
+    <DataGrid data={cartItems} ActionsTemplate={ActionsTemplate} />
+    {/* ... */}
+  </BrowserWrapper>
+);
+```
+
+After adding this line, go to your cart page and check the console. If the `cartItems` array contains the correct items, there might be a problem with the `DataGrid` component. If not, there might be a problem with the way the `cartItems` array is created from the `items` object.
+
+harihargithub: cartStore.jsx - Cart items in store after setting: {}
+cart.jsx:35  - Cart items before passing to DataGrid: 
+  logged but /dashboard/cart still no rec
+
+GitHub Copilot: From the logs you've shared, it seems like the cart items are not being added to the Zustand store correctly. When you're setting the cart items in the store, the items object is empty `{}`. This is why the cart page is not displaying any items.
+
+The issue might be in the `handleAddToCart` function in your `productPreview.jsx` file or in the `setCartItems` function in your `cartStore.jsx` file.
+
+Here's how you can debug the `handleAddToCart` function:
+
+```jsx
+// productPreview.jsx
+const handleAddToCart = () => {
+  console.log('Product to add to cart:', product); // Add this line
+  setCartItems((prevItems) => {
+    const newItems = { ...prevItems, [product.id]: product };
+    console.log('Cart items after adding:', newItems);
+    return newItems;
+  });
+  navigate('/dashboard/cart');
+};
+```
+
+After adding this line, go to a product page, click the "Add to Cart" button, and check the console. If the product object is correct, the issue might be in the `setCartItems` function in your `cartStore.jsx` file. If not, the issue might be in the way you're getting the product object in your `productPreview.jsx` file.
+
+harihargithub: productPreview.jsx:53 Product to add to cart: {id: 1, created_at: '2024-05-30T02:51:13.784643+00:00', product_details: '<p>hsvj</p>', product_name: 'hks', product_price: '100', …}
+
+but /dashboard/cart still no rec
+
+GitHub Copilot: The product object seems to be correct, so the issue might be in the `setCartItems` function in your `cartStore.jsx` file.
+
+Here's how you can debug the `setCartItems` function:
+
+```jsx
+// cartStore.jsx
+let store = (set) => ({
+  items: {},
+  setCartItems: (item) => {
+    console.log('Item to add to cart:', item); // Add this line
+    set((state) => {
+      const newItems = { ...state.items, ...item };
+      console.log('Cart items in store after setting:', newItems);
+      return { items: newItems };
+    });
+  },
+  // ...
+});
+
+// ...
+```
+
+After adding this line, go to a product page, click the "Add to Cart" button, and check the console. If the item object is correct, the issue might be in the way you're merging the `item` object with the `state.items` object. If not, the issue might be in the way you're passing the `item` object to the `setCartItems` function.
+
+harihargithub: Product to add to cart: {id: 1, created_at: '2024-05-30T02:51:13.784643+00:00', product_details: '<p>hsvj</p>', product_name: 'hks', product_price: '100', …}
+cartStore.jsx:8 Item to add to cart: (prevItems) => {
+      const newItems = { ...prevItems, [product.id]: product };
+      console.log("Cart items after adding:", newItems);
+      return newItems;
+        - still no rec in /dashboard/cart
+
+GitHub Copilot: The issue seems to be with how you're calling `setCartItems`. You're passing a function `(prevItems) => {...}` to `setCartItems`, but `setCartItems` is expecting an item object, not a function.
+
+Here's how you can fix this:
+
+```jsx
+// productPreview.jsx
+const handleAddToCart = () => {
+  console.log('Product to add to cart:', product);
+  const newItems = { ...cartItems, [product.id]: product };
+  console.log('Cart items after adding:', newItems);
+  setCartItems(newItems);
+  navigate('/dashboard/cart');
+};
+```
+
+In this code, `cartItems` should be the current state of the cart items. You can get it from the Zustand store like this:
+
+```jsx
+// productPreview.jsx
+const cartItems = useCartStore((state) => state.items);
+```
+
+After making these changes, go to a product page, click the "Add to Cart" button, and check if the item is correctly added to the cart.
+
+harihargithub: where to add this - // productPreview.jsx
+const cartItems = useCartStore((state) => state.items);
+
+GitHub Copilot: You should add the line `const cartItems = useCartStore((state) => state.items);` at the beginning of your `ProductPreview` component, just after the `setCartItems` line. Here's how your updated `ProductPreview` component should look:
+
+```jsx
+// productPreview.jsx
+const ProductPreview = () => {
+  const params = useParams();
+  const [product, setProduct] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const isLoggedIn = useStore((state) => state.isLoggedIn);
+  const setCartItems = useCartStore((state) => state.setCartItems); // get the setCartItems function from the cart store
+  const cartItems = useCartStore((state) => state.items); // get the current cart items from the cart store
+  const SupaBase = supabase;
+
+  // ... rest of your code
+};
+```
+
+Now, in your `handleAddToCart` function, `cartItems` will be the current state of the cart items, and you can use it to create the `newItems` object:
+
+```jsx
+const handleAddToCart = () => {
+  console.log('Product to add to cart:', product);
+  const newItems = { ...cartItems, [product.id]: product };
+  console.log('Cart items after adding:', newItems);
+  setCartItems(newItems);
+  navigate('/dashboard/cart');
+};
+```
+
+harihargithub: Thanks
+now yes /dashboard/cart is showing the cart items
+Grateful explain the process/concept how it works for my better understanding
+
+GitHub Copilot: Sure, I'd be happy to explain!
+
+The process you're implementing is a common pattern in state management called "lifting state up". The idea is that shared state should be managed by a parent component or a global state container (like Zustand in your case), and child components should read from and update this shared state.
+
+Here's a step-by-step explanation of how it works in your case:
+
+1. When the user clicks the "Add to Cart" button in the `ProductPreview` component, the `handleAddToCart` function is called.
+
+2. The `handleAddToCart` function creates a new object `newItems` that contains all the current cart items (retrieved from the Zustand store with `const cartItems = useCartStore((state) => state.items);`) and the product that the user wants to add to the cart.
+
+3. The `handleAddToCart` function then calls the `setCartItems` function (also retrieved from the Zustand store) with the `newItems` object. This updates the cart items in the Zustand store.
+
+4. The `handleAddToCart` function finally navigates to the `/dashboard/cart` page.
+
+5. When the `Cart` component is rendered, it retrieves the cart items from the Zustand store with `const items = useCartStore((state) => state.items);`. Since the Zustand store was updated with the new cart items in step 3, the `Cart` component now has the updated cart items.
+
+6. The `Cart` component then displays the cart items to the user.
+
+This process allows you to keep the cart items in sync across different components (`ProductPreview` and `Cart`) by storing them in a single source of truth (the Zustand store). This is the essence of state management in React.
+
+harihargithub: There is continue to purchase button @ /dashboard/cart but no checkout -
+//CheckoutForm.jsx under src/pages folder
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../../hooks/supabase'; 
+import useCartStore from '../store/cartStore'; 
+
+const CheckoutForm = () => {
+  const navigate = useNavigate();
+  const { items: cartItems, resetCart } = useCartStore();
+  const [address, setAddress] = useState('');
+
+  const getCartTotal = (items) => {
+    return Object.values(items).reduce((total, item) => total + item.price, 0);
+  };
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const { data, error: userError } = await supabase.auth.session();
+      const { session } = data;
+
+      const products = JSON.stringify(cartItems);
+      const total = getCartTotal(cartItems);
+      const { data: orderData, error: orderError } = await supabase
+        .from("order")
+        .insert({
+          total,
+          address,
+          products,
+          user_id: session?.user?.id,
+        })
+        .single();
+
+      if (!orderError) {
+        resetCart();
+        navigate("/thank-you", { state: { orderId: orderData.id } });
+      }
+    } catch (e) {
+      console.error("Something went wrong", e);
+    }
+  };
+
+  return (
+    <form onSubmit={onSubmit}>
+      <label>
+        Address:
+        <input type="text" value={address} onChange={e => setAddress(e.target.value)} required />
+      </label>
+      <button type="submit">Submit</button>
+    </form>
+  );
+};
+
+export default CheckoutForm;
+
+GitHub Copilot: It seems like you have a `CheckoutForm` component, but it's not being used anywhere. You need to create a new route for the checkout page and render the `CheckoutForm` component there.
+
+Here's how you can do this:
+
+1. First, open your `App.jsx` file (or wherever you've defined your routes) and add a new route for the checkout page:
+
+```jsx
+// App.jsx
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import CheckoutForm from './pages/CheckoutForm'; // import the CheckoutForm component
+
+// ...
+
+<Router>
+  <Switch>
+    {/* ... other routes ... */}
+    <Route path="/checkout">
+      <CheckoutForm />
+    </Route>
+  </Switch>
+</Router>
+```
+
+2. Then, in your `Cart` component, update the `Link` component to navigate to the checkout page when the "Continue to purchase" button is clicked:
+
+```jsx
+// Cart.jsx
+<Link to={Object.keys(items).length === 0 ? "" : "/checkout"}>Continue to purchase</Link>
+```
+
+Now, when you click the "Continue to purchase" button in the cart page, it should navigate to the checkout page and render the `CheckoutForm` component.
+
+harihargithub: Reference your suggestion made in your previous message <Route path="/checkout">
+      <CheckoutForm /> already there and please advise fix
+
+GitHub Copilot: I see that you already have a route for the checkout page in your `AppRoutes.jsx` file. The route is defined as `<Route path="checkout" element={<Checkout />} />` under the `/app/*` path.
+
+To navigate to this checkout page from the cart page, you need to update the "Continue to purchase" button in your `Cart` component to link to the checkout page. Here's how you can do this:
+
+```jsx
+// Cart.jsx
+import { Link } from 'react-router-dom';
+
+// ...
+
+<Link to={Object.keys(items).length === 0 ? "" : "/app/checkout"}>Continue to purchase</Link>
+```
+
+In this code, `items` should be the current state of the cart items. You can get it from the Zustand store like this:
+
+```jsx
+// Cart.jsx
+const items = useCartStore((state) => state.items);
+```
+
+Now, when you click the "Continue to purchase" button in the cart page, it should navigate to the checkout page (`/app/checkout`).
+
+harihargithub: Continue to purchase to make further purchases, right? then need a checkout button, right?
+
+GitHub Copilot: Yes, you're correct. The "Continue to Purchase" button is typically used to allow users to go back to the shopping page and add more items to their cart. Once they're done shopping, they would click a "Checkout" button to proceed to the checkout page and complete their purchase.
+
+You can add a "Checkout" button to your `Cart` component like this:
+
+```jsx
+// Cart.jsx
+import { Link } from 'react-router-dom';
+
+// ...
+
+<div>
+  <Link to="/browse">Continue to Purchase</Link>
+  {Object.keys(items).length > 0 && <Link to="/app/checkout">Checkout</Link>}
+</div>
+```
+
+In this code, `items` should be the current state of the cart items. You can get it from the Zustand store like this:
+
+```jsx
+// Cart.jsx
+const items = useCartStore((state) => state.items);
+```
+
+Now, when you click the "Checkout" button in the cart page, it should navigate to the checkout page (`/app/checkout`).
+
+harihargithub: Where to include <div>
+  <Link to="/browse">Continue to Purchase</Link>
+  {Object.keys(items).length > 0 && <Link to="/app/checkout">Checkout</Link>}
+</div>
+  And
+  const items = useCartStore((state) => state.items);
+
+GitHub Copilot: You can include the `items` constant at the beginning of your `Cart` component, just after the `updateCartItems` line. The `div` containing the "Continue to Purchase" and "Checkout" links can be included in the `purchase-area` div, replacing the existing "Continue to purchase" link. Here's how your updated `Cart` component should look:
+
+```jsx
+// cart.jsx
+import "../productList.css";
+import useCartStore from "../store/cartStore";
+import useStore from "../store/supaStore";
+import BrowserWrapper from "../components/browserWrapper";
+import DataGrid from "../components/DataGrid/index";
+import { Link } from "react-router-dom";
+import "../cart.css";
+import PropTypes from "prop-types";
+
+const Cart = () => {
+  const isLoggedIn = useStore((state) => state.isLoggedIn);
+  const { items, updateCartItems } = useCartStore((state) => state);
+
+  const removeCartItems = (product_id) => {
+    const itemsClone = { ...items };
+    delete itemsClone[product_id];
+    updateCartItems(itemsClone);
+  };
+
+  const ActionsTemplate = ({ id }) => {
+    return (
+      <span onClick={() => removeCartItems(id)} className="edit-product">
+        Remove
+      </span>
+    );
+  };
+
+  ActionsTemplate.propTypes = {
+    id: PropTypes.number.isRequired,
+  };
+
+  const cartItems = Object.keys(items).map((e) => items[e]);
+
+  console.log('Cart items before passing to DataGrid:', cartItems);
+
+  return (
+    <BrowserWrapper>
+      <div className="cart-items">
+        <DataGrid data={cartItems} ActionsTemplate={ActionsTemplate} />
+        <div className="purchase-area">
+          {isLoggedIn ? (
+            <div>
+              <Link to="/browse">Continue to Purchase</Link>
+              {Object.keys(items).length > 0 && <Link to="/app/checkout">Checkout</Link>}
+            </div>
+          ) : (
+            <Link to="/login">Login to purchase</Link>
+          )}
+        </div>
+      </div>
+    </BrowserWrapper>
+  );
+};
+
+export default Cart;
+```
+
+Now, when you click the "Checkout" button in the cart page, it should navigate to the checkout page (`/app/checkout`).
+
+harihargithub: Submit @ Checkout to go to thank-you, right? but page blank -
+
+//CheckoutForm.jsx under src/pages folder
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../../hooks/supabase'; 
+import useCartStore from '../store/cartStore'; 
+
+const CheckoutForm = () => {
+  const navigate = useNavigate();
+  const { items: cartItems, resetCart } = useCartStore();
+  const [address, setAddress] = useState('');
+
+  const getCartTotal = (items) => {
+    return Object.values(items).reduce((total, item) => total + item.price, 0);
+  };
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const { data, error: userError } = await supabase.auth.session();
+      const { session } = data;
+
+      const products = JSON.stringify(cartItems);
+      const total = getCartTotal(cartItems);
+      const { data: orderData, error: orderError } = await supabase
+        .from("order")
+        .insert({
+          total,
+          address,
+          products,
+          user_id: session?.user?.id,
+        })
+        .single();
+
+      if (!orderError) {
+        resetCart();
+        navigate("/app/thank-you", { state: { orderId: orderData.id } });
+      }
+    } catch (e) {
+      console.error("Something went wrong", e);
+    }
+  };
+
+  return (
+    <form onSubmit={onSubmit}>
+      <label>
+        Address:
+        <input type="text" value={address} onChange={e => setAddress(e.target.value)} required />
+      </label>
+      <button type="submit">Submit</button>
+    </form>
+  );
+};
+
+export default CheckoutForm;
+
+import { useLocation, useNavigate } from "react-router-dom";
+
+const ThankYou = () => {
+  const navigate = useNavigate();
+  const { state } = useLocation();
+
+  if (!state) {
+    navigate("/dashboard");
+    return;
+  }
+
+  const { orderId } = state;
+
+  return (
+    <div className="checkout-wrapper">
+      <div className="e-card text-center">
+        <h1>Thank you for your purchase</h1>
+        <span>Your order id: {orderId}</span>
+      </div>
+    </div>
+  );
+};
+
+export default ThankYou;
+
+GitHub Copilot: The issue seems to be with the `ThankYou` component. It's trying to access the `orderId` from the `state` object, but it's possible that the `state` object is `undefined` when the component is first rendered. This would cause an error and result in a blank page.
+
+To fix this, you can add a check to ensure that the `state` object exists and that it has an `orderId` property before trying to access it. Here's how you can do this:
+
+```jsx
+// ThankYou.jsx
+import { useLocation, useNavigate } from "react-router-dom";
+
+const ThankYou = () => {
+  const navigate = useNavigate();
+  const { state } = useLocation();
+
+  if (!state || !state.orderId) {
+    navigate("/dashboard");
+    return null;
+  }
+
+  const { orderId } = state;
+
+  return (
+    <div className="checkout-wrapper">
+      <div className="e-card text-center">
+        <h1>Thank you for your purchase</h1>
+        <span>Your order id: {orderId}</span>
+      </div>
+    </div>
+  );
+};
+
+export default ThankYou;
+```
+
+In this code, `return null;` is added after `navigate("/dashboard");` to ensure that the component doesn't try to render anything after the navigation has been triggered. This should prevent any errors from occurring if the `state` object is `undefined` or if it doesn't have an `orderId` property.
+
+harihargithub: Updated as suggested in your above message still thank-you not rendering
+
+GitHub Copilot: The issue might be with the way you're trying to get the session data in your `CheckoutForm` component. You're using `await supabase.auth.session();` to get the session data, but `supabase.auth.session()` is a synchronous function and doesn't return a promise, so you don't need to use `await` with it.
+
+Here's how you can update your `CheckoutForm` component to get the session data correctly:
+
+```jsx
+// CheckoutForm.jsx
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../../hooks/supabase'; 
+import useCartStore from '../store/cartStore'; 
+
+const CheckoutForm = () => {
+  const navigate = useNavigate();
+  const { items: cartItems, resetCart } = useCartStore();
+  const [address, setAddress] = useState('');
+
+  const getCartTotal = (items) => {
+    return Object.values(items).reduce((total, item) => total + item.price, 0);
+  };
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const session = supabase.auth.session();
+
+      const products = JSON.stringify(cartItems);
+      const total = getCartTotal(cartItems);
+      const { data: orderData, error: orderError } = await supabase
+        .from("order")
+        .insert({
+          total,
+          address,
+          products,
+          user_id: session?.user?.id,
+        })
+        .single();
+
+      if (!orderError) {
+        resetCart();
+        navigate("/app/thank-you", { state: { orderId: orderData.id } });
+      }
+    } catch (e) {
+      console.error("Something went wrong", e);
+    }
+  };
+
+  return (
+    <form onSubmit={onSubmit}>
+      <label>
+        Address:
+        <input type="text" value={address} onChange={e => setAddress(e.target.value)} required />
+      </label>
+      <button type="submit">Submit</button>
+    </form>
+  );
+};
+
+export default CheckoutForm;
+```
+
+In this code, I've replaced `const { data, error: userError } = await supabase.auth.session();` with `const session = supabase.auth.session();` to get the session data correctly. This should fix the issue and allow the "Thank You" page to render correctly after a successful checkout.
+
+harihargithub: Still ThankYou page is not rendered -
+// ThankYou.jsx under src/pages folder
+import { useLocation, useNavigate } from "react-router-dom";
+
+const ThankYou = () => {
+  const navigate = useNavigate();
+  const { state } = useLocation();
+
+  if (!state || !state.orderId) {
+    navigate("/dashboard");
+    return null;
+  }
+
+  const { orderId } = state;
+
+  return (
+    <div className="checkout-wrapper">
+      <div className="e-card text-center">
+        <h1>Thank you for your purchase</h1>
+        <span>Your order id: {orderId}</span>
+      </div>
+    </div>
+  );
+};
+
+export default ThankYou;
+
+GitHub Copilot: The issue might be related to the way you're navigating to the "Thank You" page. When you're calling `navigate("/app/thank-you", { state: { orderId: orderData.id } });`, it's possible that the `orderData.id` is `undefined` or `null`, which would cause the "Thank You" page to redirect to the dashboard.
+
+To debug this issue, you can add some `console.log` statements to your `CheckoutForm` and `ThankYou` components to check the values of `orderData`, `orderData.id`, and `state`.
+
+Here's how you can update your `CheckoutForm` component:
+
+```jsx
+// CheckoutForm.jsx
+// ...
+const onSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    const session = supabase.auth.session();
+
+    const products = JSON.stringify(cartItems);
+    const total = getCartTotal(cartItems);
+    const { data: orderData, error: orderError } = await supabase
+      .from("order")
+      .insert({
+        total,
+        address,
+        products,
+        user_id: session?.user?.id,
+      })
+      .single();
+
+    console.log('orderData:', orderData); // Add this line
+
+    if (!orderError) {
+      resetCart();
+      navigate("/app/thank-you", { state: { orderId: orderData.id } });
+    }
+  } catch (e) {
+    console.error("Something went wrong", e);
+  }
+};
+// ...
+```
+
+And here's how you can update your `ThankYou` component:
+
+```jsx
+// ThankYou.jsx
+const ThankYou = () => {
+  const navigate = useNavigate();
+  const { state } = useLocation();
+
+  console.log('state:', state); // Add this line
+
+  if (!state || !state.orderId) {
+    navigate("/dashboard");
+    return null;
+  }
+
+  const { orderId } = state;
+
+  return (
+    // ...
+  );
+};
+```
+
+After adding these `console.log` statements, you can check your browser's console to see the output. This should help you identify where the issue is coming from.
+
+harihargithub: line#34 not getting logged
+
+GitHub Copilot: The line `console.log('orderData:', orderData);` not getting logged indicates that the code execution is not reaching that point. This could be due to an error occurring before that line is executed.
+
+One potential issue could be with the `supabase.auth.session()` call. If the user is not authenticated, this call will return `null`, and trying to access `session?.user?.id` later on could cause issues.
+
+Another potential issue could be with the `supabase.from("order").insert(...)` call. If there's an error with this database operation, it could prevent the subsequent lines from being executed.
+
+To debug this, you can add more `console.log` statements and error checks earlier in the `onSubmit` function:
+
+```jsx
+// CheckoutForm.jsx
+// ...
+const onSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    const session = supabase.auth.session();
+    console.log('session:', session); // Add this line
+
+    if (!session || !session.user) {
+      console.error('No user session found');
+      return;
+    }
+
+    const products = JSON.stringify(cartItems);
+    const total = getCartTotal(cartItems);
+    const { data: orderData, error: orderError } = await supabase
+      .from("order")
+      .insert({
+        total,
+        address,
+        products,
+        user_id: session.user.id,
+      })
+      .single();
+
+    if (orderError) {
+      console.error('Order error:', orderError);
+      return;
+    }
+
+    console.log('orderData:', orderData);
+
+    resetCart();
+    navigate("/app/thank-you", { state: { orderId: orderData.id } });
+  } catch (e) {
+    console.error("Something went wrong", e);
+  }
+};
+// ...
+```
+
+This code adds a `console.log` statement to log the `session` object, and error checks to return early if no user session is found or if there's an error with the order insertion. This should help you identify where the issue is coming from.
+
+harihargithub: its going to /thank-you instead of app/thank-you
+
+GitHub Copilot: The issue seems to be with the relative path in the `navigate` function. When you use `navigate("/app/thank-you")`, it navigates to an absolute path. If your `CheckoutForm` component is nested inside another route, this could cause issues.
+
+To fix this, you can use a relative path in the `navigate` function. Here's how you can do this:
+
+```jsx
+// CheckoutForm.jsx
+// ...
+resetCart();
+navigate("../app/thank-you", { state: { orderId: orderData.id } });
+// ...
+```
+
+In this code, I've replaced `navigate("/app/thank-you", { state: { orderId: orderData.id } });` with `navigate("../app/thank-you", { state: { orderId: orderData.id } });` to navigate to a relative path. This should fix the issue and allow the "Thank You" page to render correctly after a successful checkout.
+
+harihargithub: still going to /thank-you
+
+GitHub Copilot: I apologize for the confusion. The `navigate` function in `react-router-dom` treats paths as absolute by default, not relative. So, when you call `navigate("../app/thank-you")`, it's not navigating to the expected path.
+
+If your `ThankYou` component is located at the path `/app/thank-you`, you should navigate to it using an absolute path, like so:
+
+```jsx
+navigate("/app/thank-you", { state: { orderId: orderData.id } });
+```
+
+If this still doesn't work, there might be an issue with how your routes are set up. Please ensure that you have a route defined for `/app/thank-you` and that the `ThankYou` component is correctly associated with this route.
+
+Here's an example of how you might define this route:
+
+```jsx
+// App.jsx or wherever your routes are defined
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import ThankYou from "./pages/ThankYou"; // adjust the import path as needed
+
+// ...
+
+<Router>
+  <Routes>
+    {/* other routes */}
+    <Route path="/app/thank-you" element={<ThankYou />} />
+  </Routes>
+</Router>
+```
+
+This sets up a route for `/app/thank-you` that renders the `ThankYou` component.
+
+harihargithub: Reference your suggestion in your previous message AppRoutes is shared -
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Login from './pages/signin';
+import Signup from './pages/signup';
+import PrivateRoutes from './routes/private';
+import PublicRoutes from './routes/public';
+import NotFound from './pages/page404';
+import Navbar from './components/navbar';
+import Logout from './pages/logout';
+import ResetPassword from './pages/ResetPassword';
+import UpdatePassword from './pages/UpdatePassword';
+import Dashboard from './pages/Dashboard';
+import ManageProducts from './pages/ManageProducts';
+import ProductPreview from './pages/productPreview';
+import Browse from './pages/browse';
+import Cart from './pages/cart';
+import ProductList from './pages/productsList';
+import Checkout from './pages/checkout';
+import ThankYou from './pages/thankyou';
+
+const AppRoutes = () => {
+  return (
+    <BrowserRouter>
+      <Navbar />
+      <Routes>
+        <Route path="product/:id" element={<ProductPreview />} /> {/* Move this line here */}
+        <Route path="/*" element={<PublicRoutes />}>
+          <Route index element={<Browse />} />
+          <Route path="product-list" element={<ProductList />} />
+          <Route path="login" element={<Login />} />
+          <Route path="register" element={<Signup />} />
+          <Route path="signup" element={<Signup />} />
+          <Route path="reset-password" element={<ResetPassword />} />
+          <Route path="update-password" element={<UpdatePassword />} />
+          <Route path="browse" element={<Browse />} />
+        </Route>
+        <Route path="logout" element={<Logout />} />
+        <Route path="/dashboard/*" element={<PrivateRoutes />}>
+          <Route index element={<Dashboard />} />
+          <Route path="manage-products" element={<ManageProducts />} />
+          <Route path="cart" element={<Cart />} />
+        </Route>
+        <Route path="/app/*" element={<PrivateRoutes />}>
+          <Route path="product-add" element={<h1>Product Add</h1>} />
+          <Route path="checkout" element={<Checkout />} />
+          <Route path="thank-you" element={<ThankYou />} />
+        </Route>
+        <Route path="/*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  );
+};
+
+export default AppRoutes;
+
+GitHub Copilot: The routes setup seems correct. The issue might be with the `navigate` function call in the `CheckoutForm` component. 
+
+In the `CheckoutForm` component, replace:
+
+```jsx
+navigate("../app/thank-you", { state: { orderId: orderData.id } });
+```
+
+with:
+
+```jsx
+navigate("/app/thank-you", { state: { orderId: orderData.id } });
+```
+
+The corrected `CheckoutForm` component should look like this:
+
+```jsx
+// CheckoutForm.jsx
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../../hooks/supabase'; 
+import useCartStore from '../store/cartStore'; 
+
+const CheckoutForm = () => {
+  const navigate = useNavigate();
+  const { items: cartItems, resetCart } = useCartStore();
+  const [address, setAddress] = useState('');
+
+  const getCartTotal = (items) => {
+    return Object.values(items).reduce((total, item) => total + item.price, 0);
+  };
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+  
+    try {
+      const session = supabase.auth.session();
+      console.log('session:', session); // Add this line
+  
+      if (!session || !session.user) {
+        console.error('No user session found');
+        return;
+      }
+  
+      const products = JSON.stringify(cartItems);
+      const total = getCartTotal(cartItems);
+      const { data: orderData, error: orderError } = await supabase
+        .from("order")
+        .insert({
+          total,
+          address,
+          products,
+          user_id: session.user.id,
+        })
+        .single();
+  
+      if (orderError) {
+        console.error('Order error:', orderError);
+        return;
+      }
+  
+      console.log('orderData:', orderData);
+  
+      resetCart();
+      navigate("/app/thank-you", { state: { orderId: orderData.id } }); // Corrected line
+    } catch (e) {
+      console.error("Something went wrong", e);
+    }
+  };
+
+  return (
+    <form onSubmit={onSubmit}>
+      <label>
+        Address:
+        <input type="text" value={address} onChange={e => setAddress(e.target.value)} required />
+      </label>
+      <button type="submit">Submit</button>
+    </form>
+  );
+};
+
+export default CheckoutForm;
+```
+
+This should correctly navigate to the `/app/thank-you` route after a successful checkout.
+
+harihargithub: Still /app/thank-you not rendering but going to /thank-you so carefully diagnose please -
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Login from './pages/signin';
+import Signup from './pages/signup';
+import PrivateRoutes from './routes/private';
+import PublicRoutes from './routes/public';
+import NotFound from './pages/page404';
+import Navbar from './components/navbar';
+import Logout from './pages/logout';
+import ResetPassword from './pages/ResetPassword';
+import UpdatePassword from './pages/UpdatePassword';
+import Dashboard from './pages/Dashboard';
+import ManageProducts from './pages/ManageProducts';
+import ProductPreview from './pages/productPreview';
+import Browse from './pages/browse';
+import Cart from './pages/cart';
+import ProductList from './pages/productsList';
+import Checkout from './pages/checkout';
+import ThankYou from './pages/thankyou';
+
+const AppRoutes = () => {
+  return (
+    <BrowserRouter>
+      <Navbar />
+      <Routes>
+        <Route path="product/:id" element={<ProductPreview />} /> {/* Move this line here */}
+        <Route path="/*" element={<PublicRoutes />}>
+          <Route index element={<Browse />} />
+          <Route path="product-list" element={<ProductList />} />
+          <Route path="login" element={<Login />} />
+          <Route path="register" element={<Signup />} />
+          <Route path="signup" element={<Signup />} />
+          <Route path="reset-password" element={<ResetPassword />} />
+          <Route path="update-password" element={<UpdatePassword />} />
+          <Route path="browse" element={<Browse />} />
+        </Route>
+        <Route path="logout" element={<Logout />} />
+        <Route path="/dashboard/*" element={<PrivateRoutes />}>
+          <Route index element={<Dashboard />} />
+          <Route path="manage-products" element={<ManageProducts />} />
+          <Route path="cart" element={<Cart />} />
+        </Route>
+        <Route path="/app/*" element={<PrivateRoutes />}>
+          <Route path="product-add" element={<h1>Product Add</h1>} />
+          <Route path="checkout" element={<Checkout />} />
+          <Route path="thank-you" element={<ThankYou />} />
+        </Route>
+        <Route path="/*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  );
+};
+
+export default AppRoutes;
+
+GitHub Copilot: I see that you have nested routes in your application. The issue might be related to how these nested routes are handled. 
+
+In your `PrivateRoutes` component, you might be using a `<Routes>` component to define the nested routes. If you're using a `<Redirect>` component in `PrivateRoutes` to redirect unauthenticated users, it might be causing the issue. 
+
+The `<Redirect>` component could be redirecting to `/thank-you` instead of `/app/thank-you`. 
+
+Here's how you can fix this:
+
+```jsx
+// PrivateRoutes.jsx
+import { useAuth } from '../context/auth';
+import { Navigate, Routes } from 'react-router-dom';
+
+const PrivateRoutes = ({ children }) => {
+  const { isAuthenticated } = useAuth();
+
+  return isAuthenticated ? (
+    <Routes>{children}</Routes>
+  ) : (
+    <Navigate to="/login" replace />
+  );
+};
+
+export default PrivateRoutes;
+```
+
+In this code, I've replaced the `<Redirect>` component with the `<Navigate>` component from `react-router-dom`. This should correctly redirect unauthenticated users to the `/login` page and allow authenticated users to access the nested routes. 
+
+If this doesn't solve the issue, please share the code of your `PrivateRoutes` and `PublicRoutes` components so I can provide a more accurate solution.
+
+harihargithub: private.jsx is shared and now please advise on your above suggestion
+
+GitHub Copilot: Your `Private` component seems to be correctly set up. It correctly uses the `<Navigate>` component to redirect unauthenticated users to the `/login` page and the `<Outlet>` component to render nested routes for authenticated users.
+
+The issue might be with how you're calling the `navigate` function in your `CheckoutForm` component. If you're calling `navigate` from a nested route, you need to include the full path.
+
+Replace:
+
+```jsx
+navigate("/app/thank-you", { state: { orderId: orderData.id } });
+```
+
+with:
+
+```jsx
+navigate("/app/thank-you", { state: { orderId: orderData.id } });
+```
+
+If this doesn't solve the issue, there might be a problem with how your routes are set up. Please share the code of your `PublicRoutes` component and the `CheckoutForm` component so I can provide a more accurate solution.
+
+harihargithub: In your above suggestion Replace and Replace with are the same
+
+GitHub Copilot: I apologize for the confusion. That was a mistake. 
+
+The `navigate` function in `react-router-dom` uses relative paths by default. If you want to navigate to an absolute path, you should use it like this:
+
+```jsx
+navigate("/app/thank-you", { replace: true, state: { orderId: orderData.id } });
+```
+
+The `replace: true` option makes the navigation replace the current entry in the history stack instead of pushing a new one.
+
+Here's the corrected `CheckoutForm` component:
+
+```jsx
+// CheckoutForm.jsx
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../../hooks/supabase'; 
+import useCartStore from '../store/cartStore'; 
+
+const CheckoutForm = () => {
+  const navigate = useNavigate();
+  const { items: cartItems, resetCart } = useCartStore();
+  const [address, setAddress] = useState('');
+
+  const getCartTotal = (items) => {
+    return Object.values(items).reduce((total, item) => total + item.price, 0);
+  };
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+  
+    try {
+      const session = supabase.auth.session();
+      console.log('session:', session); // Add this line
+  
+      if (!session || !session.user) {
+        console.error('No user session found');
+        return;
+      }
+  
+      const products = JSON.stringify(cartItems);
+      const total = getCartTotal(cartItems);
+      const { data: orderData, error: orderError } = await supabase
+        .from("order")
+        .insert({
+          total,
+          address,
+          products,
+          user_id: session.user.id,
+        })
+        .single();
+  
+      if (orderError) {
+        console.error('Order error:', orderError);
+        return;
+      }
+  
+      console.log('orderData:', orderData);
+  
+      resetCart();
+      navigate("/app/thank-you", { replace: true, state: { orderId: orderData.id } }); // Corrected line
+    } catch (e) {
+      console.error("Something went wrong", e);
+    }
+  };
+
+  return (
+    <form onSubmit={onSubmit}>
+      <label>
+        Address:
+        <input type="text" value={address} onChange={e => setAddress(e.target.value)} required />
+      </label>
+      <button type="submit">Submit</button>
+    </form>
+  );
+};
+
+export default CheckoutForm;
+```
+
+This should correctly navigate to the `/app/thank-you` route after a successful checkout.
+
+harihargithub: Still the issue as mentioned in my previous message
+
+GitHub Copilot: I apologize for the confusion earlier. The issue might be due to the structure of your routes. The `react-router-dom` library matches the first route that matches the current URL. In your case, the `/*` route in `<Route path="/*" element={<PublicRoutes />}>` might be matching before the `/app/thank-you` route.
+
+Try moving the `/app/*` route above the `/*` route:
+
+```jsx
+<Routes>
+  <Route path="product/:id" element={<ProductPreview />} />
+  <Route path="/app/*" element={<PrivateRoutes />}>
+    <Route path="product-add" element={<h1>Product Add</h1>} />
+    <Route path="checkout" element={<Checkout />} />
+    <Route path="thank-you" element={<ThankYou />} />
+  </Route>
+  <Route path="/*" element={<PublicRoutes />}>
+    <Route index element={<Browse />} />
+    <Route path="product-list" element={<ProductList />} />
+    <Route path="login" element={<Login />} />
+    <Route path="register" element={<Signup />} />
+    <Route path="signup" element={<Signup />} />
+    <Route path="reset-password" element={<ResetPassword />} />
+    <Route path="update-password" element={<UpdatePassword />} />
+    <Route path="browse" element={<Browse />} />
+  </Route>
+  <Route path="logout" element={<Logout />} />
+  <Route path="/dashboard/*" element={<PrivateRoutes />}>
+    <Route index element={<Dashboard />} />
+    <Route path="manage-products" element={<ManageProducts />} />
+    <Route path="cart" element={<Cart />} />
+  </Route>
+  <Route path="/*" element={<NotFound />} />
+</Routes>
+```
+
+This should ensure that the `/app/thank-you` route is matched before the `/*` route.
+
+harihargithub: Still the same issue as mentioned in above previous message and will brining thank-you into dashboard help?
+
+GitHub Copilot: I apologize for the confusion earlier. The issue might be due to the structure of your routes. The `react-router-dom` library matches the first route that matches the current URL. In your case, the `/*` route in `<Route path="/*" element={<PublicRoutes />}>` might be matching before the `/app/thank-you` route.
+
+Try moving the `/app/*` route above the `/*` route:
+
+```jsx
+<Routes>
+  <Route path="product/:id" element={<ProductPreview />} />
+  <Route path="/app/*" element={<PrivateRoutes />}>
+    <Route path="product-add" element={<h1>Product Add</h1>} />
+    <Route path="checkout" element={<Checkout />} />
+    <Route path="thank-you" element={<ThankYou />} />
+  </Route>
+  <Route path="/*" element={<PublicRoutes />}>
+    <Route index element={<Browse />} />
+    <Route path="product-list" element={<ProductList />} />
+    <Route path="login" element={<Login />} />
+    <Route path="register" element={<Signup />} />
+    <Route path="signup" element={<Signup />} />
+    <Route path="reset-password" element={<ResetPassword />} />
+    <Route path="update-password" element={<UpdatePassword />} />
+    <Route path="browse" element={<Browse />} />
+  </Route>
+  <Route path="logout" element={<Logout />} />
+  <Route path="/dashboard/*" element={<PrivateRoutes />}>
+    <Route index element={<Dashboard />} />
+    <Route path="manage-products" element={<ManageProducts />} />
+    <Route path="cart" element={<Cart />} />
+  </Route>
+  <Route path="/*" element={<NotFound />} />
+</Routes>
+```
+
+This should ensure that the `/app/thank-you` route is matched before the `/*` route.
+
+harihargithub: Still the same issue as mentioned in above previous message and will brining thank-you into dashboard help?
+
+GitHub Copilot: I apologize for the confusion. If moving the `thank-you` route into the `dashboard` route group doesn't conflict with your application's design, it could potentially solve the issue. Here's how you can do it:
+
+```jsx
+<Routes>
+  <Route path="product/:id" element={<ProductPreview />} />
+  <Route path="/app/*" element={<PrivateRoutes />}>
+    <Route path="product-add" element={<h1>Product Add</h1>} />
+    <Route path="checkout" element={<Checkout />} />
+  </Route>
+  <Route path="/*" element={<PublicRoutes />}>
+    <Route index element={<Browse />} />
+    <Route path="product-list" element={<ProductList />} />
+    <Route path="login" element={<Login />} />
+    <Route path="register" element={<Signup />} />
+    <Route path="signup" element={<Signup />} />
+    <Route path="reset-password" element={<ResetPassword />} />
+    <Route path="update-password" element={<UpdatePassword />} />
+    <Route path="browse" element={<Browse />} />
+  </Route>
+  <Route path="logout" element={<Logout />} />
+  <Route path="/dashboard/*" element={<PrivateRoutes />}>
+    <Route index element={<Dashboard />} />
+    <Route path="manage-products" element={<ManageProducts />} />
+    <Route path="cart" element={<Cart />} />
+    <Route path="thank-you" element={<ThankYou />} /> {/* Moved here */}
+  </Route>
+  <Route path="/*" element={<NotFound />} />
+</Routes>
+```
+
+Then, in your `CheckoutForm` component, you would navigate to `/dashboard/thank-you` instead of `/app/thank-you`:
+
+```jsx
+navigate("/dashboard/thank-you", { replace: true, state: { orderId: orderData.id } });
+```
+
+This should correctly navigate to the `thank-you` page after a successful checkout. If this doesn't solve the issue, please let me know.
+
+harihargithub: Warning: Failed prop type: Invalid prop `item.product_price` of type `string` supplied to `Products`, expected `number`:29
+
+GitHub Copilot: The warning message indicates that the `Products` component is expecting a prop named `item.product_price` of type `number`, but it's receiving a `string` instead.
+
+You can fix this by converting `item.product_price` to a number before passing it to the `Products` component. Here's how you can do it:
+
+```jsx
+<Products item={{...item, product_price: Number(item.product_price)}} />
+```
+
+This code creates a new object with all properties of `item`, but with `product_price` converted to a number. If `item.product_price` can't be converted to a number, `Number(item.product_price)` will return `NaN`.
+
+Please note that this is a general solution. The exact fix might be different depending on where and how you're using the `Products` component. If this doesn't solve the issue, please share the relevant code.
+
+harihargithub: where to include - <Products item={{...item, product_price: Number(item.product_price)}} />
+
+GitHub Copilot: The code snippet you provided doesn't seem to include the `Products` component, so I can't provide a specific location to include the suggested change. 
+
+However, the change should be made wherever the `Products` component is being used in your code and the `item.product_price` prop is being passed. 
+
+Here's a general example:
+
+```jsx
+// Some other component
+import Products from './Products';
+
+const SomeComponent = () => {
+  const items = getItems(); // Assume this function returns your items
+
+  return (
+    <div>
+      {items.map(item => (
+        <Products key={item.id} item={{...item, product_price: Number(item.product_price)}} />
+      ))}
+    </div>
+  );
+};
+```
+
+In this example, `getItems()` is a placeholder for however you're fetching your items. The important part is the `Products` component inside the `map` function. It's here that we're passing `item.product_price` as a number.
+
+Please replace `getItems()` and `SomeComponent` with the actual function and component in your code. If you need more specific help, please provide the code where you're using the `Products` component.
+
+harihargithub: Following was your suggestion so please advise accordingly -
+The warning message indicates that the `Products` component is expecting a prop named `item.product_price` of type `number`, but it's receiving a `string` instead.
+
+You can fix this by converting `item.product_price` to a number before passing it to the `Products` component. Here's how you can do it:
+
+```jsx
+<Products item={{...item, product_price: Number(item.product_price)}} />
+```
+
+This code creates a new object with all properties of `item`, but with `product_price` converted to a number. If `item.product_price` can't be converted to a number, `Number(item.product_price)` will return `NaN`.
+
+Please note that this is a general solution. The exact fix might be different depending on where and how you're using the `Products` component. If this doesn't solve the issue, please share the relevant code.
+
+GitHub Copilot: I apologize for the confusion, but the `CheckoutForm.jsx` file you've shared doesn't seem to include the `Products` component. The warning you're seeing is likely coming from another part of your application where the `Products` component is being used.
+
+The `Products` component is likely being used in a different file, and that's where you'd need to make the change. 
+
+Here's a general example of how you might be using the `Products` component:
+
+```jsx
+// Some other component
+import Products from './Products';
+
+const SomeComponent = () => {
+  const items = getItems(); // Assume this function returns your items
+
+  return (
+    <div>
+      {items.map(item => (
+        <Products key={item.id} item={{...item, product_price: Number(item.product_price)}} />
+      ))}
+    </div>
+  );
+};
+```
+
+In this example, `getItems()` is a placeholder for however you're fetching your items. The important part is the `Products` component inside the `map` function. It's here that we're passing `item.product_price` as a number.
+
+Please replace `getItems()` and `SomeComponent` with the actual function and component in your code. If you need more specific help, please provide the code where you're using the `Products` component.
+
+harihargithub: products.jsx is shared here and please advise on your previous message 
+
+GitHub Copilot: I see, thank you for sharing the `products.jsx` file. However, this file is setting up a Zustand store for managing a list of products, and it doesn't seem to be using the `Products` component directly.
+
+The warning you're seeing is likely coming from a different part of your application where the `Products` component is being used and the `item.product_price` prop is being passed.
+
+You need to find where the `Products` component is being used in your application. It would be in a file where you're mapping over your products and rendering a `Products` component for each one. In that place, you need to ensure that `product_price` is being passed as a number, not a string.
+
+Here's a general example:
+
+```jsx
+// Some other component
+import Products from './Products';
+import productStore from './store/products';
+
+const SomeComponent = () => {
+  const { productsList } = productStore();
+
+  return (
+    <div>
+      {productsList.map(item => (
+        <Products key={item.id} item={{...item, product_price: Number(item.product_price)}} />
+      ))}
+    </div>
+  );
+};
+```
+
+In this example, `SomeComponent` is a placeholder for the actual component in your code where you're using the `Products` component. If you need more specific help, please provide the code where you're using the `Products` component.
+
+harihargithub: Please check this ref your previous message
+
+GitHub Copilot: The `useProducts` hook you've shared is fetching products from your database and storing them in your Zustand store. However, it doesn't seem to be using the `Products` component directly.
+
+The warning you're seeing is likely coming from a different part of your application where the `Products` component is being used and the `item.product_price` prop is being passed.
+
+You need to find where the `Products` component is being used in your application. It would be in a file where you're mapping over your products and rendering a `Products` component for each one. In that place, you need to ensure that `product_price` is being passed as a number, not a string.
+
+Here's a general example:
+
+```jsx
+// Some other component
+import Products from './Products';
+import useProducts from './hooks/useProducts';
+
+const SomeComponent = () => {
+  useProducts(); // Fetch products and store them in Zustand store
+
+  const { productsList } = productStore();
+
+  return (
+    <div>
+      {productsList.map(item => (
+        <Products key={item.id} item={{...item, product_price: Number(item.product_price)}} />
+      ))}
+    </div>
+  );
+};
+```
+
+In this example, `SomeComponent` is a placeholder for the actual component in your code where you're using the `Products` component. If you need more specific help, please provide the code where you're using the `Products` component.
+
+harihargithub: Ref your previous message check here please
+
+GitHub Copilot: Thank you for sharing the `ProductList.jsx` file. This file is rendering a list of products using the `DataGrid` component, but it doesn't seem to be using the `Products` component directly.
+
+The `Products` component is likely being used in a different part of your application, and that's where you need to ensure that `product_price` is being passed as a number, not a string.
+
+However, if the `DataGrid` component is the one expecting `product_price` to be a number, you can convert `product_price` to a number before passing the products list to `DataGrid`. Here's how you can do it:
+
+```jsx
+const ProductList = () => {
+  // ...
+  const productsList = productStore((state) => state.productsList).map(product => ({
+    ...product,
+    product_price: Number(product.product_price)
+  }));
+
+  return (
+    <div className="product-list">
+      <DataGrid
+        data={productsList}
+        ActionsTemplate={<ProductActions
+          setProductToEdit={setProductToEdit}
+          setShowModal={setShowModal}
+        />}
+      />
+      {/* ... */}
+    </div>
+  );
+};
+```
+
+This code creates a new products list with all properties of each product, but with `product_price` converted to a number. If `product.product_price` can't be converted to a number, `Number(product.product_price)` will return `NaN`.
+
+Please note that this is a general solution. The exact fix might be different depending on how you're using the `DataGrid` component. If this doesn't solve the issue, please share the code of the `DataGrid` component.
+
+harihargithub: Warning: Failed prop type: Invalid prop `item.product_price` of type `string` supplied to `Products`, expected `number`.
+import "../productList.css";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import ProductEdit from "./productEdit";
+import Modal from "../components/Modal";
+import useProducts from "../../hooks/useProduct";
+import productStore from "../store/products";
+import DataGrid from "../components/DataGrid/index";
+import PropTypes from "prop-types";
+
+const ActionsTemplate = (props) => {
+  const { product, setProductToEdit, setShowModal } = props;
+  return (
+    <span>
+      <span
+        onClick={() => {
+          setProductToEdit(product);
+          setShowModal(true);
+        }}
+        className="edit-product"
+      >
+        Edit
+      </span>
+      <Link to={`/product/${product.id}`} title={`preview ${product.Name}`}>
+        Preview
+      </Link>
+    </span>
+  );
+};
+
+ActionsTemplate.propTypes = {
+  product: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    Name: PropTypes.string.isRequired,
+  }).isRequired,
+  setProductToEdit: PropTypes.func.isRequired,
+  setShowModal: PropTypes.func.isRequired,
+};
+
+
+
+const withProductActions = (Component) => {
+  const WithProductActions = (props) => {
+    const { product, setProductToEdit, setShowModal } = props;
+    return (
+      <Component
+        product={product}
+        setProductToEdit={setProductToEdit}
+        setShowModal={setShowModal}
+      />
+    );
+  };
+
+  WithProductActions.displayName = `WithProductActions(${getDisplayName(Component)})`;
+
+  WithProductActions.propTypes = {
+    product: PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      Name: PropTypes.string.isRequired,
+    }).isRequired,
+    setProductToEdit: PropTypes.func.isRequired,
+    setShowModal: PropTypes.func.isRequired,
+  };
+
+  return WithProductActions;
+};
+
+function getDisplayName(WrappedComponent) {
+  return WrappedComponent.displayName || WrappedComponent.name || 'Component';
+}
+
+const ProductActions = withProductActions(ActionsTemplate);
+
+const ProductList = () => {
+  const [productToEdit, setProductToEdit] = useState({});
+  const [showModal, setShowModal] = useState(false);
+  useProducts();
+  const productsList = productStore((state) => state.productsList).map(product => ({
+    ...product,
+    product_price: Number(product.product_price)
+  }));
+
+  return (
+    <div className="product-list">
+      <DataGrid
+        data={productsList}
+        ActionsTemplate={<ProductActions
+          setProductToEdit={setProductToEdit}
+          setShowModal={setShowModal}
+        />}
+      />
+      <Modal
+        showModal={showModal}
+        handleClose={() => {
+          setShowModal(false);
+          setProductToEdit({});
+        }}
+      >
+        <ProductEdit product={productToEdit} />
+      </Modal>
+    </div>
+  );
+};
+
+export default ProductList;
+
+GitHub Copilot: The warning message indicates that the `Products` component is expecting a prop named `item.product_price` of type `number`, but it's receiving a `string` instead.
+
+You can fix this by converting `item.product_price` to a number before passing it to the `Products` component. Here's how you can do it:
+
+```jsx
+<Products item={{...item, product_price: Number(item.product_price)}} />
+```
+
+This code creates a new object with all properties of `item`, but with `product_price` converted to a number. If `item.product_price` can't be converted to a number, `Number(item.product_price)` will return `NaN`.
+
+Please note that this is a general solution. The exact fix might be different depending on where and how you're using the `Products` component. If this doesn't solve the issue, please share the relevant code.
+
+harihargithub: Suggestion in your previous message already done here, right?
+
+GitHub Copilot: Yes, you're correct. In your `ProductList` component, you're already converting `product_price` to a number before passing it to the `DataGrid` component:
+
+```jsx
+const productsList = productStore((state) => state.productsList).map(product => ({
+  ...product,
+  product_price: Number(product.product_price)
+}));
+```
+
+This should ensure that `product_price` is a number when it's passed to the `DataGrid` component and any child components it might render.
+
+However, the warning message you're seeing suggests that somewhere in your application, a `Products` component is receiving `item.product_price` as a string. If the `Products` component is used elsewhere in your application, you'll need to ensure that `item.product_price` is converted to a number there as well.
+
+If the `Products` component is only used within the `DataGrid` component, then it's possible that `DataGrid` or one of its child components is converting `product_price` back to a string. In that case, you'll need to check the code of `DataGrid` and its child components.
+
+If you're still seeing the warning after checking these things, please share the code of the `Products` and `DataGrid` components so I can help you further.
+
+harihargithub: ref your previous message datagrid is shared
+
+GitHub Copilot: Thank you for sharing the `DataGrid` component. The `DataGrid` component is using the `GridComponent` from `@syncfusion/ej2-react-grids` to render a table of products. Each product is represented by a row in the table, and each property of a product is represented by a cell in the row.
+
+The `DataGrid` component is not directly using the `Products` component, so the warning about `item.product_price` being a string is not coming from this component.
+
+However, the `DataGrid` component is using a `DefaultValueTemplate` for the `product_price` field. This template is a function that returns the value of the field or `0` if the field is `undefined` or `null`:
+
+```jsx
+const DefaultValueTemplate = (props) => {
+  return props[props.column.field] || 0;
+};
+```
+
+This function will return `0` if `product_price` is `undefined` or `null`, but it will return the original value of `product_price` if it's a string. This could be the source of the warning if `product_price` is a string when it's passed to the `DataGrid` component.
+
+To fix this, you could modify the `DefaultValueTemplate` to convert `product_price` to a number:
+
+```jsx
+const DefaultValueTemplate = (props) => {
+  return Number(props[props.column.field]) || 0;
+};
+```
+
+This will ensure that `product_price` is a number when it's used in the `DataGrid` component, which should eliminate the warning. However, this will only fix the warning if it's coming from the `DataGrid` component. If the warning is coming from a different part of your application, you'll need to find where the `Products` component is being used and ensure that `item.product_price` is a number there.
+
+harihargithub: userid is not getting stored in order table
+
+GitHub Copilot: The issue seems to be with how you're trying to get the user's session. You're using `supabase.auth.getSession()`, which is not a function in Supabase. Instead, you should use `supabase.auth.session()` to get the current session.
+
+Here's how you can modify your `onSubmit` function to get the user's session correctly:
+
+```jsx
+const onSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    const session = supabase.auth.session();
+
+    const address = JSON.stringify(state);
+    const products = JSON.stringify(items);
+    const total = getCartTotal(items);
+    const { data: orderData, error: orderError } = await supabase
+      .from("order")
+      .insert({
+        total,
+        address,
+        products,
+        user_id: session?.user?.id,
+      })
+      .select();
+
+    if (!orderError) {
+      formObject.current.element.reset();
+      resetCart();
+      navigate("/dashboard/thank-you", { state: { orderId: orderData[0].id } });
+    }
+  } catch (e) {
+    console.error("Something went wrong", e);
+  }
+};
+```
+
+This should fix the issue with the user ID not being stored in the order table. If you're still having issues, please let me know.
+
+harihargithub: Something went wrong TypeError: supabase.auth.session is not a function
+    at onSubmit (checkout.jsx:132:35)
+
+GitHub Copilot: It seems like there's a misunderstanding about how to get the current session with Supabase. The correct method to get the current session is `supabase.auth.user()`. This will return the current logged in user's details. 
+
+Here's how you can modify your `onSubmit` function to get the user's session correctly:
+
+```jsx
+const onSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    const user = supabase.auth.user();
+
+    const address = JSON.stringify(state);
+    const products = JSON.stringify(items);
+    const total = getCartTotal(items);
+    const { data: orderData, error: orderError } = await supabase
+      .from("order")
+      .insert({
+        total,
+        address,
+        products,
+        user_id: user?.id,
+      })
+      .select();
+
+    if (!orderError) {
+      formObject.current.element.reset();
+      resetCart();
+      navigate("/dashboard/thank-you", { state: { orderId: orderData[0].id } });
+    }
+  } catch (e) {
+    console.error("Something went wrong", e);
+  }
+};
+```
+
+This should fix the issue with the user ID not being stored in the order table. If you're still having issues, please let me know.
+
+harihargithub: Warning: Encountered two children with the same key, `[object Object]`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+
+GitHub Copilot: The warning you're seeing is due to the fact that you're using an object as a key in your `map` function. React uses keys to identify items in the list and to decide when to re-render components. Keys should be unique and stable across re-renders.
+
+In your `CartDetails` component, you're mapping over `itemsMapped` and for each item, you're rendering a `Products` component with a key of `e` which is an object. This is causing the warning.
+
+Here's how you can fix it:
+
+```jsx
+const CartDetails = () => {
+  const items = useCartStore((state) => state.items);
+
+  const itemsMapped = Object.keys(items).map((e) => items[e]);
+
+  const cartTotal = getCartTotal(items);
+
+  const productsMapped = itemsMapped.map((e, index) => <Products item={e} key={index} />);
+
+  return (
+    <div className="product-wrapper">
+      <div>{productsMapped}</div>
+      <div>
+        Cart Total: <strong>{cartTotal}</strong>
+      </div>
+    </div>
+  );
+};
+```
+
+In this code, I've replaced `key={e}` with `key={index}`. This will ensure that each key is unique. However, using the index as a key is not recommended if the list can change (items can be added, removed, or reordered). If each item has a unique identifier (like an id), you should use that instead.
+
+harihargithub: checkout.jsx:153 Something went wrong TypeError: supabase.auth.user is not a function
+    at onSubmit (checkout.jsx:132:32)
+
+GitHub Copilot: The error message indicates that `supabase.auth.user` is not a function. This could be due to a couple of reasons:
+
+1. The `supabase` object might not be initialized correctly.
+2. The `supabase` package might not be the latest version.
+
+First, ensure that `supabase` is initialized correctly. You should have something like this in your `supabase.js` file:
+
+```javascript
+import { createClient } from '@supabase/supabase-js'
+
+export const supabase = createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+)
+```
+
+Replace `SUPABASE_URL` and `SUPABASE_ANON_KEY` with your actual Supabase URL and anon key.
+
+If `supabase` is initialized correctly, then check the version of your `@supabase/supabase-js` package. The `user()` function is available from version `1.0.0` onwards. You can check the version by running `npm list @supabase/supabase-js` in your terminal.
+
+If you're using an older version, update it by running `npm install @supabase/supabase-js@latest` in your terminal.
+
+After ensuring these two points, your `onSubmit` function should work as expected.
+
+harihargithub: Ref your previous message please check here
+
+GitHub Copilot: Your Supabase client initialization looks correct. The issue might be with how you're trying to access the user session. 
+
+In Supabase, you can access the current user's session information using `supabase.auth.session()`. This returns a session object which contains the current user's information, including their `user.id`.
+
+Here's how you can modify your `onSubmit` function to get the user's session correctly:
+
+```jsx
+const onSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    const session = supabase.auth.session();
+
+    const address = JSON.stringify(state);
+    const products = JSON.stringify(items);
+    const total = getCartTotal(items);
+    const { data: orderData, error: orderError } = await supabase
+      .from("order")
+      .insert({
+        total,
+        address,
+        products,
+        user_id: session?.user?.id,
+      })
+      .select();
+
+    if (!orderError) {
+      formObject.current.element.reset();
+      resetCart();
+      navigate("/dashboard/thank-you", { state: { orderId: orderData[0].id } });
+    }
+  } catch (e) {
+    console.error("Something went wrong", e);
+  }
+};
+```
+
+This should fix the issue with the user ID not being stored in the order table. If you're still having issues, please let me know.
+
+harihargithub: Something went wrong TypeError: supabase.auth.session is not a function
+
+GitHub Copilot: The error message indicates that `supabase.auth.session` is not a function. This could be due to a couple of reasons:
+
+1. The `supabase` object might not be initialized correctly.
+2. The `supabase` package might not be the latest version.
+
+First, ensure that `supabase` is initialized correctly. You should have something like this in your `supabase.js` file:
+
+```javascript
+import { createClient } from '@supabase/supabase-js'
+
+export const supabase = createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+)
+```
+
+Replace `SUPABASE_URL` and `SUPABASE_ANON_KEY` with your actual Supabase URL and anon key.
+
+If `supabase` is initialized correctly, then check the version of your `@supabase/supabase-js` package. The `session()` function is available from version `1.0.0` onwards. You can check the version by running `npm list @supabase/supabase-js` in your terminal.
+
+If you're using an older version, update it by running `npm install @supabase/supabase-js@latest` in your terminal.
+
+After ensuring these two points, your `onSubmit` function should work as expected.
+
+harihargithub: Ref your above message this file was already shared
+
+GitHub Copilot: I apologize for the confusion. Your Supabase client initialization looks correct.
+
+The error you're encountering is unusual because `supabase.auth.session()` is a valid function in the Supabase JavaScript library. 
+
+However, if you're still encountering the error, you can try to use `supabase.auth.user()` to get the current user's details. 
+
+Here's how you can modify your `onSubmit` function:
+
+```jsx
+const onSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    const user = supabase.auth.user();
+
+    const address = JSON.stringify(state);
+    const products = JSON.stringify(items);
+    const total = getCartTotal(items);
+    const { data: orderData, error: orderError } = await supabase
+      .from("order")
+      .insert({
+        total,
+        address,
+        products,
+        user_id: user?.id,
+      })
+      .select();
+
+    if (!orderError) {
+      formObject.current.element.reset();
+      resetCart();
+      navigate("/dashboard/thank-you", { state: { orderId: orderData[0].id } });
+    }
+  } catch (e) {
+    console.error("Something went wrong", e);
+  }
+};
+```
+
+This should fix the issue with the user ID not being stored in the order table. If you're still having issues, please let me know.
+
+harihargithub: auth.user also gave the error as in previous message
+
+GitHub Copilot: I apologize for the confusion. It seems there might be an issue with the Supabase client or the way it's being used. 
+
+Let's try to debug this issue step by step:
+
+1. First, ensure that you're logged in. The `supabase.auth.user()` and `supabase.auth.session()` methods will return `null` if there's no logged-in user. You can check this by logging the user right after you initialize the Supabase client:
+
+```jsx
+console.log(supabase.auth.user());
+```
+
+2. If the user is `null`, make sure you're calling `supabase.auth.signIn()` somewhere in your code and that the sign-in process is completing successfully.
+
+3. If the user is not `null`, but you're still getting the error, there might be an issue with the way you're importing or using the Supabase client. Make sure you're importing the client correctly in your `checkout.jsx` file:
+
+```jsx
+import { supabase } from './supabase.jsx';
+```
+
+4. If none of the above steps solve the issue, there might be a problem with your Supabase package. Try reinstalling it with `npm install @supabase/supabase-js@latest`.
+
+Please let me know if any of these steps solve the issue or if you need further assistance.
+
+harihargithub: console.log(supabase.auth.user()); - where to include this?
+
+GitHub Copilot: You can include the `console.log(supabase.auth.user());` statement in the `useEffect` hook in your `ShippingForm` component. This will log the user when the component mounts. Here's how you can do it:
+
+```jsx
+useEffect(() => {
+  userNameRef.current.focusIn();
+  const options = {
+    rules: {
+      // ... your validation rules
+    },
+  };
+  formObject.current = new FormValidator("#form1", options);
+
+  // Log the user
+  console.log(supabase.auth.user());
+}, []);
+```
+
+This will print the user object to the console when the `ShippingForm` component is mounted. If the user is `null`, it means that there's no logged-in user. If the user is an object, it means that a user is logged in.
+
+harihargithub: Warning: Failed prop type: Invalid prop `item.product_price` of type `string` supplied to `Products`, expected `number`.
+    at Products (http://localhost:5173/src/pages/checkout.jsx?t=1717398729337:73:21)
+
+GitHub Copilot: 
+
+
+
+http://localhost:5173/product-list - error occurred in the <DialogComponent2> component:
+DialogComponent2.render (@syncfusion_ej2-react-popups.js?v=0739bdbf:122:33)
+
+Raised ticket and their response is provided below for a fix please -
+Greetings from Syncfusion support. 
+
+Upon validation, When the dialog’s target has an invalid element (the element is not available in DOM), the reported console error "Console error cannot read offsetHeight of null" will be raised. Make sure that the target element id/class name is present in the DOM element and the element assigned to the Target property must be the parent element of Dialog component. Please refer to the following code snippet and sample attached below.
+
+
+<div id='targetElement'> 
+  <DialogComponent target='#targetElement'/> 
+
+  sample file -
+  import { createRoot } from 'react-dom/client';
+import './index.css';
+import * as React from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { DialogComponent } from '@syncfusion/ej2-react-popups';
+import { CheckBoxComponent } from '@syncfusion/ej2-react-buttons';
+import { PropertyPane } from './property-pane';
+
+
+const Modal = () => {
+    let dialogInstance = useRef(null);
+    let animationSettings;
+    let buttons;
+    let buttonEle;
+    const [display, setDisplay] = useState('none');
+    const [status, setStatus] = useState(true);
+    let buttonRef = (element) => {
+        buttonEle = element;
+    };
+    animationSettings = { effect: 'None' };
+    buttons = [
+        {
+            // Click the footer buttons to hide the Dialog
+            click: () => {
+                setStatus(false);
+            },
+            // Accessing button component properties by buttonModel property
+            buttonModel: {
+                //Enables the primary button
+                isPrimary: true,
+                content: 'OK',
+            },
+        },
+    ];
+    // function to handle the CheckBox change event
+    const onChange = (args) => {
+        if (args.checked) {
+            dialogInstance.current.overlayClick = () => {
+                setStatus(false);
+            };
+        }
+        else {
+            dialogInstance.current.overlayClick = () => {
+                setStatus(true);
+            };
+        }
+    };
+    // To Open dialog
+    const buttonClick = () => {
+        setStatus(true);
+    };
+    const dialogClose = () => {
+        setStatus(false);
+        setDisplay('inline-block');
+    };
+    const dialogOpen = () => {
+        setStatus(true);
+        setDisplay('none');
+    };
+    return (<div className="control-pane">
+        <div className="control-section modal-dialog-target">
+          <div id="target" className="col-lg-8">
+            <button className="e-control e-btn dlgbtn dlgbtn-position" ref={buttonRef} onClick={buttonClick} style={{ display: display }}>Open</button>
+            {/* Rendering modal Dialog by enabling 'isModal' as true */}
+            <DialogComponent id="modalDialog" isModal={true} buttons={buttons} header="Software Update" width="335px" content="Your current software version is up to date." ref={dialogInstance} target="#target" visible={status} open={dialogOpen} close={dialogClose} animationSettings={animationSettings}></DialogComponent>
+          </div>
+          <div className="col-lg-4 property-section">
+            <PropertyPane title="Properties">
+              <table id="property" title="Properties" className="property-panel-table table-width">
+                <tbody>
+                  <tr>
+                    <td className="table-td">
+                      <div className="dialog-td-font">Close on overlay click</div>
+                    </td>
+                    <td>
+                      <CheckBoxComponent checked={false} change={onChange}></CheckBoxComponent>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </PropertyPane>
+          </div>
+        </div>
+      </div>);
+};
+export default Modal;
+
+const root = createRoot(document.getElementById('sample'));
+root.render(<Modal />);
+
+The error you're encountering is due to the DialogComponent's target property being set to an element that doesn't exist in the DOM at the time of rendering. 
+
+In your [`ProductList`](command:_github.copilot.openSymbolFromReferences?%5B%7B%22%24mid%22%3A1%2C%22fsPath%22%3A%22c%3A%5C%5CUsers%5C%5Cnhari%5C%5COneDrive%5C%5Cworkspace-spring-tool-suite-4-4.19.0.RELEASE%5C%5Cems_springboot_react_vite_mysql_sf%5C%5Cvite_zustand_proj2%5C%5Cdigital-shop-ls-supabase%5C%5Csrc%5C%5Cpages%5C%5CproductsList.jsx%22%2C%22_sep%22%3A1%2C%22external%22%3A%22file%3A%2F%2F%2Fc%253A%2FUsers%2Fnhari%2FOneDrive%2Fworkspace-spring-tool-suite-4-4.19.0.RELEASE%2Fems_springboot_react_vite_mysql_sf%2Fvite_zustand_proj2%2Fdigital-shop-ls-supabase%2Fsrc%2Fpages%2FproductsList.jsx%22%2C%22path%22%3A%22%2Fc%3A%2FUsers%2Fnhari%2FOneDrive%2Fworkspace-spring-tool-suite-4-4.19.0.RELEASE%2Fems_springboot_react_vite_mysql_sf%2Fvite_zustand_proj2%2Fdigital-shop-ls-supabase%2Fsrc%2Fpages%2FproductsList.jsx%22%2C%22scheme%22%3A%22file%22%7D%2C%7B%22line%22%3A74%2C%22character%22%3A0%7D%5D "digital-shop-ls-supabase/src/pages/productsList.jsx") component, you're using a [`Modal`](command:_github.copilot.openSymbolFromReferences?%5B%7B%22%24mid%22%3A1%2C%22path%22%3A%22%2Fc%3A%2FUsers%2Fnhari%2FOneDrive%2Fworkspace-spring-tool-suite-4-4.19.0.RELEASE%2Fems_springboot_react_vite_mysql_sf%2Fvite_zustand_proj2%2Fdigital-shop-ls-supabase%2Fsrc%2Fcomponents%2FModal.jsx%22%2C%22scheme%22%3A%22file%22%7D%2C%7B%22line%22%3A7%2C%22character%22%3A0%7D%5D "digital-shop-ls-supabase/src/components/Modal.jsx") component which I assume is where the `DialogComponent` is being used. 
+
+You need to ensure that the target element exists in the DOM before the DialogComponent tries to render. 
+
+Here's a possible fix:
+
+```jsx
+// ... other imports
+import { DialogComponent } from '@syncfusion/ej2-react-popups';
+
+const ProductList = () => {
+  // ... other state variables
+  const [showModal, setShowModal] = useState(false);
+  const targetElement = useRef(null); // Add this line
+
+  // ... other code
+
+  return (
+    <div className="product-list" ref={targetElement}>
+      <DataGrid
+        data={productsList}
+        ActionsTemplate={() => <ProductActions setProductToEdit={setProductToEdit} setShowModal={setShowModal} />}
+      />
+      {showModal && targetElement.current && (
+        <DialogComponent target={targetElement.current}>
+          <Modal
+            showModal={showModal}
+            handleClose={() => {
+              setShowModal(false);
+              setProductToEdit({});
+            }}
+          >
+            <ProductEdit product={productToEdit} />
+          </Modal>
+        </DialogComponent>
+      )}
+    </div>
+  );
+};
+
+export default ProductList;
+```
+
+In this code, I've added a `ref` to the `product-list` div. This `ref` is then passed to the `DialogComponent` as the target. The `DialogComponent` and `Modal` are only rendered if `showModal` is `true` and `targetElement.current` is not `null`, ensuring that the target element exists in the DOM before the DialogComponent tries to render.
+
+The useProducts hook is used to fetch the list of products from the Supabase database and store them in the productStore.
+
+The useEffect hook is used to call the fetchProducts function when the component mounts. The fetchProducts function is an asynchronous function that fetches the user's session and then fetches the products associated with the user's id. If there are any errors during this process, they are caught and logged to the console.
+
+The productStore is a Zustand store that is used to manage the state of the products list. It has a productsList array and a setProductsList function. The setProductsList function is used to update the productsList array.
+
+The ProductList component uses the useProducts hook to fetch the products and store them in the productStore. It then maps over the productsList array from the productStore and creates a new array where each product's price is converted to a number. This new array is passed as the data prop to the DataGrid component.
+
+The ProductList component also uses a Modal and a DialogComponent to display a modal when a product is being edited. The setProductToEdit and setShowModal functions are used to control which product is being edited and whether the modal is shown or not.
+
+The ActionsTemplate component is used to display the "Edit" and "Preview" actions for each product. When the "Edit" action is clicked, the setProductToEdit function is called with the current product and the setShowModal function is called with true to show the modal.
+
+The withProductActions function is a higher-order component that wraps a component and provides it with the product, setProductToEdit, and setShowModal props.
+
+The getDisplayName function is used to get the display name of a component. It first checks if the component has a displayName property, then checks if it has a name property, and if neither of those exist, it returns 'Component'.
+
+Made /product-list both - public/private ie moved it up
+
+
+useProduct.jsx - Data fetched: 
+(4) [{…}, {…}, {…}, {…}]
+0
+: 
+{id: 1, created_at: '2024-05-30T02:51:13.784643+00:00', product_details: '<p>hsvj</p>', product_name: 'hks', product_price: '100', …}
+1
+: 
+{id: 2, created_at: '2024-06-01T11:09:13.011344+00:00', product_details: '<p><span style="text-decoration: underline;"><strong>Hare Srinivasa</strong></span></p>', product_name: 'hvs', product_price: '111', …}
+2
+: 
+{id: 3, created_at: '2024-06-03T12:57:52.839014+00:00', product_details: '<p><em><strong><span style="text-decoration: underline;">Jai Shri Ram</span></strong></em></p>', product_name: 'Ram', product_price: '222', …}
+3
+: 
+{id: 4, created_at: '2024-06-05T07:09:57.904922+00:00', product_details: '<p><strong>Ranga Ranga Ranga</strong></p>', product_name: 'Ranga', product_price: '333', …}
+length
+: 
+4
+
+ but ProductList - Warning: Failed prop type: The prop `product` is marked as required in `WithProductActions(ActionsTemplate)`, but its value is `undefined`. ,  
+
+ arning: Failed prop type: The prop `product` is marked as required in `ActionsTemplate`, but its value is `undefined`.,
+ 
+ Uncaught TypeError: Cannot read properties of undefined (reading 'id')
+
+
+The error messages indicate that the product prop is undefined when it's being used in WithProductActions(ActionsTemplate) and ActionsTemplate. This is likely because the product prop is not being passed correctly to the ProductActions component in the DataGrid component.
+
+The DataGrid component is expecting a function for the ActionsTemplate prop that takes a product as an argument, but the function you're passing doesn't take any arguments.
+
+Here's how you can fix this:
+
+<DataGrid
+  key={productsList.length} // Add this line
+  data={productsList}
+  ActionsTemplate={(product) => <ProductActions product={product} setProductToEdit={setProductToEdit} setShowModal={setShowModal} />}
+/>
+
+In this updated code, the ActionsTemplate function takes a product as an argument and passes it to the ProductActions component. This should ensure that the product prop is defined when it's used in WithProductActions(ActionsTemplate) and ActionsTemplate.

@@ -58,7 +58,7 @@
   }
 
   .card-control-section.basic_card_layout .card-layout {
-    max-width: 870px;
+    max-width: 1200px;
   }
 }
 /* Flip card Customization */
@@ -115,7 +115,7 @@
   .e-card-left {
   margin-left: 20px;
   padding-left: 0;
-  width: 50%;
+  width: 80%;
 }
 
 .card-control-section.flip_card_layout #card_flip.e-card .e-card-header-image,
@@ -285,7 +285,7 @@
 
 .card-control-section.flip_card_layout .card-layout {
   margin: auto;
-  max-width: 400px;
+  max-width: 1200px;
 }
 
 @media (min-width: 870px) {
@@ -358,7 +358,7 @@
 }
 
 .card-control-section.horizontal_card_layout #vertical_Sample .e-card > * {
-  width: 50%;
+  width: 80%;
   justify-content: flex-start;
 }
 
@@ -393,7 +393,7 @@
 
 .card-control-section.horizontal_card_layout .card-layout {
   margin: auto;
-  max-width: 870px;
+  max-width: 1200px;
 }
 
 @media (min-width: 912px) {

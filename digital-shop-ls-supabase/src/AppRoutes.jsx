@@ -23,13 +23,13 @@ const AppRoutes = () => {
       <Navbar />
       <Routes>
   <Route path="product/:id" element={<ProductPreview />} />
+  <Route path="product-list" element={<ProductList />} />
   <Route path="/app/*" element={<PrivateRoutes />}>
     <Route path="product-add" element={<h1>Product Add</h1>} />
     <Route path="checkout" element={<Checkout />} />
   </Route>
   <Route path="/*" element={<PublicRoutes />}>
     <Route index element={<Browse />} />
-    <Route path="product-list" element={<ProductList />} />
     <Route path="login" element={<Login />} />
     <Route path="register" element={<Signup />} />
     <Route path="signup" element={<Signup />} />

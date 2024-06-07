@@ -9,9 +9,11 @@ import { Link, NavLink } from "react-router-dom";
 import { SidebarComponent } from "@syncfusion/ej2-react-navigations";
 import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
+import useStore from "../store/supaStore";
 
 const Wrapper = ({ children }) => {
   const navigate = useNavigate();
+  const { firstName } = useStore((state) => state);
 
  const handleLogout = () => {
     navigate("/logout");
@@ -21,9 +23,9 @@ const Wrapper = ({ children }) => {
     <div className="wrapper">
       <header>
         <Link className="title" to="/dashboard" title="visit dashboard">
-          Geva Digital Shop
+          HSVJ Digital Shop
         </Link>
-        <span className="username">Hello Prashant</span>
+        <span className="username">Hi {firstName}</span>
       </header>
       <main>
         <SidebarComponent id="default-sidebar" className="e-card sidebar">

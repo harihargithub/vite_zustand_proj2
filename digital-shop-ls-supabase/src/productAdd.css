@@ -1,5 +1,5 @@
 .field-area {
-    flex: 1 50%;
+    flex: 1 90%;
     padding: 20px 10px 0 10px;
     text-align: left;
   }
@@ -13,4 +13,9 @@
     font-size: 1.2em;
     margin: 20px 0;
     display: inline-block;
+  }
+
+  .row {
+    width: 90%; /* Adjust this value to your liking */
+    margin: 0 auto; /* This centers the container */
   }
