@@ -8,9 +8,10 @@ import "../../src/productAdd.css";
 import TextEditor from "../../src/components/TextEditor";
 import { supabase } from "../../hooks/supabase"
 import Toast from "../components/toast"
-import productStore from "../store/products";
+import { useParams } from 'react-router-dom';
 
-const ProductEdit = ({ product }) => {
+const ProductEdit = () => {
+  const { id } = useParams();
   const [productName, setProductName] = useState("");
   const [productPrice, setProductPrice] = useState("");
   const [productThumbnail, setProductThumbnail] = useState("");
@@ -22,68 +23,66 @@ const ProductEdit = ({ product }) => {
   });
   const productDescriptionRef = useRef();
   const SupaBase = supabase;
-  const { productsList, setProductsList } = productStore((state) => state);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const fetchProduct = async () => {
+      const { data, error } = await SupaBase
+        .from('products')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching product:', error);
+      } else {
+        const {
+          product_name,
+          product_price,
+          product_thumbnail,
+          product_offering,
+          product_details,
+        } = data;
+
+        setProductName(product_name);
+        setProductPrice(product_price);
+        setProductThumbnail(product_thumbnail);
+        setProductOffering(product_offering);
+        productDescriptionRef.current.value = product_details;
+      }
+    };
+
+    fetchProduct();
+  }, [id]);
 
   const handleClick = async () => {
-    try {
-      const productDetails = productDescriptionRef.current.value;
-      if (
-        productName ||
-        productPrice ||
-        productThumbnail ||
-        productDetails ||
-        productOffering
-      ) {
-        const { data, error: userError } = await SupaBase.auth.getSession();
-        const { session } = data;
+  const productDetails = productDescriptionRef.current.value;
+  const { error } = await SupaBase
+    .from('products')
+    .update({
+      product_name: productName,
+      product_price: productPrice,
+      product_thumbnail: productThumbnail,
+      product_offering: productOffering,
+      product_details: productDetails,
+    })
+    .eq('id', id);
 
-        const { data: updatedProduct, error: productError } = await SupaBase
-          .from("products")
-          .update({
-            product_name: productName,
-            product_price: productPrice,
-            product_thumbnail: productThumbnail,
-            product_details: productDetails,
-            product_offering: productOffering,
-          })
-          .eq("id", product.id)
-          .select();
-
-        const filteredProducts = productsList.filter(
-          (e) => e.id !== product.id
-        );
-
-        setProductsList([...filteredProducts, ...updatedProduct]);
-
-        setToast({
-          message: "Successfully update the product",
-          show: true,
-          type: "success",
-        });
-      } else {
-        console.log("Product detials missing");
-      }
-    } catch (e) {
-      console.error("An error occurred", e);
-    }
-  };
-
-  useEffect(() => {
-    const {
-      product_name,
-      product_price,
-      product_thumbnail,
-      product_offering,
-      product_details,
-    } = product;
-
-    setProductName(product_name);
-    setProductPrice(product_price);
-    setProductThumbnail(product_thumbnail);
-    setProductOffering(product_offering);
-    productDescriptionRef.current.value = product_details;
-  }, [product]);
-
+  if (error) {
+    console.error('Error updating product:', error);
+    setToast({
+      show: true,
+      message: 'Error updating product',
+      type: 'error',
+    });
+  } else {
+    setToast({
+      show: true,
+      message: 'Product updated successfully',
+      type: 'success',
+    });
+  }
+};
 
   return (
   <div>

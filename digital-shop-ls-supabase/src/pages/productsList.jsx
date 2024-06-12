@@ -82,6 +82,7 @@ const ProductList = () => {
   useProducts();
   const productsList = productStore((state) => state.productsList).map(product => ({
     ...product,
+    Name: product.Name || 'Default Name',
     product_price: Number(product.product_price)
   }));
   useEffect(() => {

@@ -1,21 +1,24 @@
 .field-area {
-    flex: 1 90%;
-    padding: 20px 10px 0 10px;
-    text-align: left;
-  }
-  
-  .save-btn {
-    margin: 20px 0;
-    font-size: 1.2em;
-  }
-  
-  .product-desc {
-    font-size: 1.2em;
-    margin: 20px 0;
-    display: inline-block;
-  }
+  flex: 1 90%;
+  padding: 20px 10px 0 10px;
+  text-align: left;
+  height: 80%; // Add this line
+}
 
-  .row {
-    width: 90%; /* Adjust this value to your liking */
-    margin: 0 auto; /* This centers the container */
-  }
+.save-btn {
+  margin: 20px 0;
+  font-size: 1.2em;
+}
+
+.product-desc {
+  font-size: 1.2em;
+  margin: 20px 0;
+  display: inline-block;
+  height: 80%; // Add this line
+}
+
+.row {
+  width: 90%; /* Adjust this value to your liking */
+  margin: 0 auto; /* This centers the container */
+  height: 80%; // Add this line
+}

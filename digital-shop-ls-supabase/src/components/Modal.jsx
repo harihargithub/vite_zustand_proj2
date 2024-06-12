@@ -14,6 +14,7 @@ const Modal = ({ showModal, handleClose, children }) => {
     <div className="modal" id="dialog-target">
       <DialogComponent
         width="99%"
+        height= "80%"
         close={dialogClose}
         header="**Fill the product details"
         target={"#main-area"}
