@@ -27,7 +27,7 @@ const ProductEdit = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const fetchProduct = async () => {
-      const { data, error } = await SupaBase
+      const { data, error } = await supabase
         .from('products')
         .select('*')
         .eq('id', id)
@@ -43,6 +43,8 @@ const ProductEdit = () => {
           product_offering,
           product_details,
         } = data;
+
+        console.log('fetched product:', data)
 
         setProductName(product_name);
         setProductPrice(product_price);

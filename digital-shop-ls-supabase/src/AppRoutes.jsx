@@ -25,7 +25,7 @@ const AppRoutes = () => {
       <Routes>
   <Route path="product/:id" element={<ProductPreview />} />
   <Route path="product-list" element={<ProductList />} />
-  <Route path="product-edit" element={<ProductEdit />} />
+  <Route path="product-edit/:id" element={<ProductEdit />} />
   <Route path="/app/*" element={<PrivateRoutes />}>
     <Route path="product-add" element={<h1>Product Add</h1>} />
     <Route path="checkout" element={<Checkout />} />

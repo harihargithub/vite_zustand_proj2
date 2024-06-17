@@ -12,18 +12,15 @@ import { DialogComponent } from "@syncfusion/ej2-react-popups";
 import { useEffect } from "react";
 
 const ActionsTemplate = (props) => {
-  const { product, setProductToEdit, setShowModal } = props;
+  const { product } = props;
   return (
     <span>
-      <span
-        onClick={() => {
-          setProductToEdit(product);
-          setShowModal(true);
-        }}
+      <Link
+        to={`/product-edit/${product.id}`}
         className="edit-product"
       >
         Edit
-      </span>
+      </Link>
       <Link to={`/product/${product.id}`} title={`preview ${product.Name}`}>
         Preview
       </Link>
