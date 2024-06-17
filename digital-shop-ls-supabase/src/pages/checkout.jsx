@@ -1,3 +1,4 @@
+//checkout.jsx under src/pages folder
 import { useRef, useReducer, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TextBoxComponent, MaskedTextBoxComponent } from '@syncfusion/ej2-react-inputs';
@@ -141,6 +142,9 @@ const ShippingForm = () => {
 
   try {
     const { data, error: userError } = await supabase.auth.getSession();
+    if (userError) {
+      throw userError;
+    }
     const { session } = data;
 
     const address = JSON.stringify(state);
@@ -156,16 +160,17 @@ const ShippingForm = () => {
       })
       .select();
 
-    if (!orderError) {
-      formObject.current.element.reset();
-      resetCart();
-      navigate("/dashboard/thank-you", { state: { orderId: orderData[0].id } });
+    if (orderError) {
+      throw orderError;
     }
+
+    formObject.current.element.reset();
+    resetCart();
+    navigate("/dashboard/thank-you", { state: { orderId: orderData[0].id } });
   } catch (e) {
     console.error("Something went wrong", e);
   }
 };
-
   return (
     <>
       <div id="container">

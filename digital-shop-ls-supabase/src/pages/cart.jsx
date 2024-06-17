@@ -47,7 +47,7 @@ const Cart = () => {
         <div className="purchase-area">
           {isLoggedIn ? (
             <div>
-              <Link to="/browse">Continue to Purchase</Link>
+              <Link to="/product-list">Continue to Purchase</Link>
               {Object.keys(items).length > 0 && <Link to="/app/checkout">Checkout</Link>}
             </div>
           ) : (
