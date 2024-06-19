@@ -10,6 +10,13 @@ import { supabase } from "../../hooks/supabase";
 import Toast from "../components/toast";
 import productStore from "../store/products";
 
+ 
+const convertToEmbeddableUrl = (url) => {
+  const fileId = url.split('/d/')[1].split('/view')[0];
+  return `https://drive.google.com/uc?export=view&id=${fileId}`;
+}
+
+
 const ProductAdd = () => {
   const [productName, setProductName] = useState("");
   const [productPrice, setProductPrice] = useState("");
@@ -66,6 +73,11 @@ const ProductAdd = () => {
       console.error("An error occurred", e);
     }
   };
+  
+  const handleThumbnailChange = (e) => {
+    const embeddableUrl = convertToEmbeddableUrl(e.target.value);
+    setProductThumbnail(embeddableUrl);
+  }
 
   const resetState = () => {
     setProductName("");
@@ -128,7 +140,7 @@ const ProductAdd = () => {
             placeholder="product offering"
             name="product-offering"
             id="product-offering"
-            onChange={(e) => setProductOffering(e.target.value)}
+            onChange={handleThumbnailChange}
             value={productOffering}
             required
           />

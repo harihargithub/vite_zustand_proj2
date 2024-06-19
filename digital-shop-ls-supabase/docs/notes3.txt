@@ -524,3 +524,26 @@ The `tablespace pg_default` line specifies that the table should be created in t
 
 To execute this command, you would typically use a SQL client to connect to your database, paste the command into the query editor, and run the command. If you're using Supabase, you can run this command in the Supabase SQL editor.
 
+
+
+To set the Entity to `allUsers` for your Google Cloud Storage bucket, follow these steps:
+
+1. Navigate to the [Google Cloud Console](https://console.cloud.google.com/).
+
+2. Select your project from the dropdown at the top.
+
+3. In the left sidebar, click on "Storage" under the "Storage" section.
+
+4. Click on the name of your bucket (`nh180624`).
+
+5. Click on the "Permissions" tab.
+
+6. Click on the "+ Add" button to add a new permission.
+
+7. In the "New members" field, enter `allUsers`.
+
+8. In the "Role" dropdown, select "Storage" > "Storage Object Viewer".
+
+9. Click on the "Save" button.
+
+This will add a new permission with the "Entity" set to `allUsers` and the "Role" set to "Storage Object Viewer", which will make the bucket public.
