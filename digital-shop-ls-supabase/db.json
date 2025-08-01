@@ -1,0 +1,7 @@
+{
+  "activities": [
+    { "id": 1, "name": "Yoga for Beginners" },
+    { "id": 2, "name": "Advanced Zumba" },
+    { "id": 3, "name": "Sunrise Meditation" }
+  ]
+}

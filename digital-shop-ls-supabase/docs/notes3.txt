@@ -547,3 +547,176 @@ To set the Entity to `allUsers` for your Google Cloud Storage bucket, follow the
 9. Click on the "Save" button.
 
 This will add a new permission with the "Entity" set to `allUsers` and the "Role" set to "Storage Object Viewer", which will make the bucket public.
+
+
+
+SELECT * FROM information_schema.tables WHERE table_name = 'users';
+
+| table_catalog | table_schema | table_name | table_type | self_referencing_column_name | reference_generation | user_defined_type_catalog | user_defined_type_schema | user_defined_type_name | is_insertable_into | is_typed | commit_action |
+| ------------- | ------------ | ---------- | ---------- | ---------------------------- | -------------------- | ------------------------- | ------------------------ | ---------------------- | ------------------ | -------- | ------------- |
+| postgres      | auth         | users      | BASE TABLE |                              |                      |                           |                          |                        | YES                | NO       |               |
+
+
+CREATE POLICY products_policy ON products
+USING (user_id::uuid = auth.uid())
+WITH CHECK (user_id::uuid = auth.uid());
+
+Success. No rows returned
+
+https://supabase.com/dashboard/project/uyqzpgmjgigdwiygoagg/auth/policies?search=29955&schema=public
+
+products
+Row Level Security enabled
+
+Create policy
+ALL products_policy Applied to: public
+
+
+
+https://supabase.com/dashboard/project/uyqzpgmjgigdwiygoagg/auth/policies?search=30005&schema=public
+
+order
+Row Level Security enabled
+
+Create policy
+DELETE
+delete_order
+Applied to: public
+
+
+INSERT
+insert_order
+Applied to: public
+
+SELECT
+select_order
+Applied to:public
+
+UPDATE
+update_order
+Applied to:public
+
+
+CREATE ROLE Staff;
+SELECT rolname FROM pg_roles;  - Rest all except Staff are prefined roles, is it?
+| rolname                    |
+| -------------------------- |
+| pg_database_owner          |
+| pg_read_all_data           |
+| pg_write_all_data          |
+| pg_monitor                 |
+| pg_read_all_settings       |
+| pg_read_all_stats          |
+| pg_stat_scan_tables        |
+| pg_read_server_files       |
+| pg_write_server_files      |
+| pg_execute_server_program  |
+| pg_signal_backend          |
+| pg_checkpoint              |
+| pgsodium_keyiduser         |
+| pgsodium_keymaker          |
+| supabase_realtime_admin    |
+| staff                      |
+| supabase_admin             |
+| supabase_auth_admin        |
+| supabase_read_only_user    |
+| authenticator              |
+| dashboard_user             |
+| pgbouncer                  |
+| pgsodium_keyholder         |
+| supabase_replication_admin |
+| supabase_storage_admin     |
+| postgres                   |
+| authenticated              |
+| anon                       |
+| service_role               |
+
+Yes, all the roles listed in your query result, except for "Staff", are predefined roles in Supabase or PostgreSQL.
+
+Here's a brief explanation of some of these roles:
+
+- `postgres`: The database superuser.
+- `authenticated`: A role assigned to all authenticated users by Supabase.
+- `anon`: A role assigned to all unauthenticated users by Supabase.
+- `service_role`: A role used by Supabase to perform server-side operations.
+- `pg_*`: Roles defined by PostgreSQL for various administrative tasks.
+- `supabase_*`: Roles defined by Supabase for various tasks related to the Supabase services.
+
+The "Staff" role is the one you created with the `CREATE ROLE Staff;` command. It's not a predefined role, and it doesn't have any privileges by default. You can grant it privileges and use it in your Row Level Security (RLS) policies as needed.
+
+To assign the "Staff" role to a user in Supabase, you can use the `auth.set_user_role(user_id, new_role)` function. Here's an example:
+
+```sql
+SELECT auth.set_user_role('816a4e45-de91-4f7d-b9c7-1916a077207a', 'Staff');
+```
+
+Replace `'816a4e45-de91-4f7d-b9c7-1916a077207a'` with the user's ID.
+
+Please note that only a Supabase service role or a database superuser can execute this function. If you're using the Supabase client in your application, you cannot use this function directly due to security restrictions. Instead, you would typically create a server-side function (like a cloud function or serverless function) that can execute this SQL command. This server-side function should implement appropriate security measures to ensure that only authorized users can change roles.
+
+Also, ensure that the "Staff" role exists in your database. If it doesn't, you'll need to create it first using a command like `CREATE ROLE Staff;`.
+
+
+
+To restrict modification of the `product_price` column in the `products` table to only users with the "Staff" role, you can use PostgreSQL's column-level security feature.
+
+First, you need to revoke all privileges on the `product_price` column from the "public" role, which includes all users:
+
+```sql
+REVOKE ALL PRIVILEGES ON products.product_price FROM public;
+```
+
+Then, you grant the "UPDATE" privilege on the `product_price` column to the "Staff" role:
+
+```sql
+GRANT UPDATE (product_price) ON products TO Staff;
+```
+
+Please note that these commands need to be executed by a database superuser or a user with the necessary privileges. Also, replace "Staff" with the actual role name if it's different in your database.
+
+Remember that these commands only control the ability to modify the `product_price` column directly. If there are any functions or triggers in your database that modify this column, you'll need to ensure that they are defined with the security attributes that meet your requirements.
+
+
+
+
+Change pw from supabase:
+
+//hashPassord.jsx under src/pages folder
+
+// Import bcrypt using ES module syntax
+import bcrypt from 'bcrypt';
+
+const saltRounds = 10;
+const myPlaintextPassword = 'gh123456';
+
+// Use bcrypt to hash the password
+bcrypt.hash(myPlaintextPassword, saltRounds, function(err, hash) {
+  // Now `hash` is the hashed password you can use in your SQL command
+  console.log(hash);
+  // You can replace the console.log with your SQL command logic if needed
+});
+
+base) PS C:\Users\nhari\OneDrive\workspace-spring-tool-suite-4-4.19.0.RELEASE\ems_springboot_react_vite_mysql_sf\vite_zustand_proj2\digital-shop-ls-supabase\src\pages> node .\hashPassword.js   
+$2b$10$0//4TpLqHNXXqmjBsMLrOuHBBykB55/WMemcOlQVkWDxfnt7GeG1K
+
+UPDATE auth.users
+SET encrypted_password = '$2b$10$0//4TpLqHNXXqmjBsMLrOuHBBykB55/WMemcOlQVkWDxfnt7GeG1K'
+WHERE email = 'info@abseo.in';  // response: success
+
+
+
+set staff to id with email info@abseo.in:
+
+CREATE TABLE IF NOT EXISTS user_roles (
+    user_id UUID NOT NULL,
+    role_name TEXT NOT NULL,
+    PRIMARY KEY (user_id, role_name),
+    FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+
+-- Insert the role 'staff' for the user with email 'info@abseo.in'
+INSERT INTO user_roles (user_id, role_name)
+SELECT id, 'staff'
+FROM auth.users
+WHERE email = 'info@abseo.in'
+ON CONFLICT (user_id, role_name) DO NOTHING;

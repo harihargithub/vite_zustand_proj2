@@ -180,4 +180,11 @@ ProductEdit.propTypes = {
     product: PropTypes.object.isRequired,
   };
 
+// To address the warning, you need to either provide the required `product` prop to `ProductEdit` or make the prop optional if it's not always required. 
+// Assuming `product` prop is not always required, you can make it optional by removing `.isRequired`:
+
+ProductEdit.propTypes = {
+  product: PropTypes.object,
+};
+
 export default ProductEdit;

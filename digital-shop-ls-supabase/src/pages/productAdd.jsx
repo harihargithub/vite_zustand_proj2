@@ -10,13 +10,6 @@ import { supabase } from "../../hooks/supabase";
 import Toast from "../components/toast";
 import productStore from "../store/products";
 
- 
-const convertToEmbeddableUrl = (url) => {
-  const fileId = url.split('/d/')[1].split('/view')[0];
-  return `https://drive.google.com/uc?export=view&id=${fileId}`;
-}
-
-
 const ProductAdd = () => {
   const [productName, setProductName] = useState("");
   const [productPrice, setProductPrice] = useState("");
@@ -32,53 +25,52 @@ const ProductAdd = () => {
   const { productsList, setProductsList } = productStore((state) => state);
 
   const handleClick = async () => {
-    try {
-      const productDetails = productDescriptionRef.current.value;
-      if (
-        productName ||
-        productPrice ||
-        productThumbnail ||
-        productDetails ||
-        productOffering
-      ) {
-        const { data, error: userError } = await SupaBase.auth.getSession();
-        const { session } = data;
+  try {
+    const { data, error: userError } = await SupaBase.auth.getSession();
+    const { session } = data;
 
-        const { data: newProduct, error: productError } = await SupaBase
-          .from("products")
-          .insert({
-            product_name: productName,
-            product_price: productPrice,
-            product_thumbnail: productThumbnail,
-            product_details: productDetails,
-            product_offering: productOffering,
-            user_details: session?.user,
-            user_id: session?.user?.id,
-          })
-          .select();
-
-        setProductsList([...productsList, ...newProduct]);
-
-        setToast({
-          message: "Successfully added a product",
-          show: true,
-          type: "success",
-        });
-
-        resetState();
-      } else {
-        console.log("Product detials missing");
-      }
-    } catch (e) {
-      console.error("An error occurred", e);
+    // Prevent users with the 'staff' role from adding products
+    if (session?.user?.role === 'staff') {
+      setToast({
+        message: "Staff members are not allowed to add products.",
+        show: true,
+        type: "error",
+      });
+      return; // Exit the function if 'staff'
     }
-  };
-  
-  const handleThumbnailChange = (e) => {
-    const embeddableUrl = convertToEmbeddableUrl(e.target.value);
-    setProductThumbnail(embeddableUrl);
-  }
 
+    // Proceed with adding a product if the user is not a 'staff' member
+    const productDetails = productDescriptionRef.current.value;
+    if (productName && productPrice && productThumbnail && productDetails && productOffering) {
+      const { data: newProduct, error: productError } = await SupaBase
+        .from("products")
+        .insert({
+          product_name: productName,
+          product_price: productPrice,
+          product_thumbnail: productThumbnail,
+          product_details: productDetails,
+          product_offering: productOffering,
+          user_details: session?.user,
+          user_id: session?.user?.id,
+        })
+        .select();
+
+      setProductsList([...productsList, ...newProduct]);
+
+      setToast({
+        message: "Successfully added a product",
+        show: true,
+        type: "success",
+      });
+
+      resetState();
+    } else {
+      console.log("Product details missing");
+    }
+  } catch (e) {
+    console.error("An error occurred", e);
+  }
+};
   const resetState = () => {
     setProductName("");
     setProductPrice("");
@@ -140,7 +132,7 @@ const ProductAdd = () => {
             placeholder="product offering"
             name="product-offering"
             id="product-offering"
-            onChange={handleThumbnailChange}
+            onChange={(e) => setProductOffering(e.target.value)}
             value={productOffering}
             required
           />
