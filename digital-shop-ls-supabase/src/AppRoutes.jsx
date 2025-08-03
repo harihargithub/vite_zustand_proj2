@@ -17,38 +17,43 @@ import ProductList from './pages/productsList';
 import Checkout from './pages/checkout';
 import ThankYou from './pages/thankyou';
 import ProductEdit from './pages/productEdit';
+import BotDetectionDashboard from './components/BotDetectionDashboard';
+import BotDetectionProvider from './components/BotDetectionProvider';
 
 const AppRoutes = () => {
   return (
-    <BrowserRouter>
-      <Navbar />
-      <Routes>
-  <Route path="product/:id" element={<ProductPreview />} />
-  <Route path="product-list" element={<ProductList />} />
-  <Route path="product-edit/:id" element={<ProductEdit />} />
-  <Route path="/app/*" element={<PrivateRoutes />}>
-    <Route path="product-add" element={<h1>Product Add</h1>} />
-    <Route path="checkout" element={<Checkout />} />
-  </Route>
-  <Route path="/*" element={<PublicRoutes />}>
-    <Route index element={<Browse />} />
-    <Route path="login" element={<Login />} />
-    <Route path="register" element={<Signup />} />
-    <Route path="signup" element={<Signup />} />
-    <Route path="reset-password" element={<ResetPassword />} />
-    <Route path="update-password" element={<UpdatePassword />} />
-    <Route path="browse" element={<Browse />} />
-  </Route>
-  <Route path="logout" element={<Logout />} />
-  <Route path="/dashboard/*" element={<PrivateRoutes />}>
-    <Route index element={<Dashboard />} />
-    <Route path="manage-products" element={<ManageProducts />} />
-    <Route path="cart" element={<Cart />} />
-    <Route path="thank-you" element={<ThankYou />} /> {/* Moved here */}
-  </Route>
-  <Route path="/*" element={<NotFound />} />
-</Routes>
-    </BrowserRouter>
+    <BotDetectionProvider>
+      <BrowserRouter>
+        <Navbar />
+        <Routes>
+    <Route path="product/:id" element={<ProductPreview />} />
+    <Route path="product-list" element={<ProductList />} />
+    <Route path="product-edit/:id" element={<ProductEdit />} />
+    <Route path="/app/*" element={<PrivateRoutes />}>
+      <Route path="product-add" element={<h1>Product Add</h1>} />
+      <Route path="checkout" element={<Checkout />} />
+    </Route>
+    <Route path="/*" element={<PublicRoutes />}>
+      <Route index element={<Browse />} />
+      <Route path="login" element={<Login />} />
+      <Route path="register" element={<Signup />} />
+      <Route path="signup" element={<Signup />} />
+      <Route path="reset-password" element={<ResetPassword />} />
+      <Route path="update-password" element={<UpdatePassword />} />
+      <Route path="browse" element={<Browse />} />
+    </Route>
+    <Route path="logout" element={<Logout />} />
+    <Route path="/dashboard/*" element={<PrivateRoutes />}>
+      <Route index element={<Dashboard />} />
+      <Route path="manage-products" element={<ManageProducts />} />
+      <Route path="bot-detection" element={<BotDetectionDashboard />} />
+      <Route path="cart" element={<Cart />} />
+      <Route path="thank-you" element={<ThankYou />} /> {/* Moved here */}
+    </Route>
+    <Route path="/*" element={<NotFound />} />
+  </Routes>
+      </BrowserRouter>
+    </BotDetectionProvider>
   );
 };
 
