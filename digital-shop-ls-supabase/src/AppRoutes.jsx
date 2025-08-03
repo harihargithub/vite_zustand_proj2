@@ -19,6 +19,7 @@ import ThankYou from './pages/thankyou';
 import ProductEdit from './pages/productEdit';
 import BotDetectionDashboard from './components/BotDetectionDashboard';
 import BotDetectionProvider from './components/BotDetectionProvider';
+import ResourceDistributionDashboard from './components/ResourceDistributionDashboard';
 
 const AppRoutes = () => {
   return (
@@ -47,6 +48,7 @@ const AppRoutes = () => {
       <Route index element={<Dashboard />} />
       <Route path="manage-products" element={<ManageProducts />} />
       <Route path="bot-detection" element={<BotDetectionDashboard />} />
+      <Route path="resource-distribution" element={<ResourceDistributionDashboard />} />
       <Route path="cart" element={<Cart />} />
       <Route path="thank-you" element={<ThankYou />} /> {/* Moved here */}
     </Route>

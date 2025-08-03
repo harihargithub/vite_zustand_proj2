@@ -227,6 +227,11 @@ export class BotDetectionMiddleware {
 // Export singleton instance
 export const botDetection = new BotDetectionMiddleware();
 
+// Convenience function for one-off bot detection
+export const detectBot = async (requestData) => {
+  return await botDetection.detectBot(requestData);
+};
+
 // React Hook for easy integration
 export const useBotDetection = () => {
   const trackPageView = async (additionalData = {}) => {

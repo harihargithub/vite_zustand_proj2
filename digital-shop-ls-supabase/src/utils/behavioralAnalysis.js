@@ -517,6 +517,9 @@ const determineRiskLevel = (score) => {
   return 'minimal';
 };
 
+// Create alias for the main function
+export const analyzeBehavioralPatterns = analyzeBehavior;
+
 export {
   calculateBehaviorScore,
   analyzeRequestFrequency,

@@ -1,7 +1,6 @@
 // src/hooks/useBotProtection.js
 import { useEffect } from 'react';
 import { useBotDetection } from '../components/BotDetectionProvider';
-import { toast } from 'react-hot-toast';
 
 // Custom hook for protecting components with bot detection
 export const useBotProtection = (options = {}) => {
@@ -44,7 +43,9 @@ export const useBotProtection = (options = {}) => {
 
   const handleBlocked = (result) => {
     if (enableToast) {
-      toast.error('Access denied. Suspicious activity detected.');
+      console.warn('Bot Detection: Access denied. Suspicious activity detected.');
+      // You can replace this with your toast component
+      // Toast({ errorMessage: 'Access denied. Suspicious activity detected.', type: 'error' })
     }
     
     if (onBlocked) {
@@ -57,7 +58,9 @@ export const useBotProtection = (options = {}) => {
 
   const handleSuspicious = (result) => {
     if (enableToast) {
-      toast.warning('Your activity is being monitored for security purposes.');
+      console.warn('Bot Detection: Your activity is being monitored for security purposes.');
+      // You can replace this with your toast component
+      // Toast({ errorMessage: 'Your activity is being monitored for security purposes.', type: 'warning' })
     }
     
     if (onSuspicious) {
