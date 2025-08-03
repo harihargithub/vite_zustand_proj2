@@ -8,6 +8,7 @@ export const useActivityStore = create((set) => ({
     set({ isLoading: true });
 
     try {
+      await new Promise(resolve => setTimeout(resolve, 2000));
       // Fetch all activities and filter on client side for better search functionality
       const res = await fetch(`http://localhost:3001/activities`);
       const data = await res.json();

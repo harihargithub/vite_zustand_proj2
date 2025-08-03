@@ -3992,7 +3992,7 @@ In your case, it seems like the user is already authenticated when they reset th
 
 If you want to allow unauthenticated users to reset their password, you should use the `supabase.auth.api.updateUser` function with the token, as I described in my previous message. If you only want to allow authenticated users to reset their password, you can continue using the `supabase.auth.updateUser` function without the token.
 
-nharihar1@rediffmail.com  hare1234
+nharihar1@rediffmail.com  hare4321
 
 No, the `supabase.auth.updateUser` method requires an authenticated session, which means the user must be logged in. This method is typically used for allowing logged-in users to change their password.
 

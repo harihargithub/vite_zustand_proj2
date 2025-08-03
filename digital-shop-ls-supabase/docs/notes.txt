@@ -89,5 +89,5 @@ Remember to import the necessary Syncfusion CSS files in each page to ensure the
 Please note that while Syncfusion provides a wide range of UI components, it does not provide a built-in solution for e-commerce functionality like payment processing or order management. You will need to implement these features yourself or integrate with a third-party service.
 
 
-nharihar1@rediffmail.com  hare1234
+nharihar1@rediffmail.com  hare4321
 info@abseo.in gh123456
