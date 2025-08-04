@@ -20,6 +20,9 @@ import ProductEdit from './pages/productEdit';
 import BotDetectionDashboard from './components/BotDetectionDashboard';
 import BotDetectionProvider from './components/BotDetectionProvider';
 import ResourceDistributionDashboard from './components/ResourceDistributionDashboard';
+import BillingDashboard from './components/BillingDashboard';
+import UsageAnalytics from './components/UsageAnalytics';
+import SaaSAdminPanel from './components/SaaSAdminPanel';
 
 const AppRoutes = () => {
   return (
@@ -49,6 +52,9 @@ const AppRoutes = () => {
       <Route path="manage-products" element={<ManageProducts />} />
       <Route path="bot-detection" element={<BotDetectionDashboard />} />
       <Route path="resource-distribution" element={<ResourceDistributionDashboard />} />
+      <Route path="billing" element={<BillingDashboard />} />
+      <Route path="usage-analytics" element={<UsageAnalytics />} />
+      <Route path="admin" element={<SaaSAdminPanel />} />
       <Route path="cart" element={<Cart />} />
       <Route path="thank-you" element={<ThankYou />} /> {/* Moved here */}
     </Route>

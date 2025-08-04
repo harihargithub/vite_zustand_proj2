@@ -1,45 +1,51 @@
 // src/services/smartRateLimit.js
 import { supabase } from '../store/supaStore';
+import { SaaSBillingService } from './saasBilling';
 
 export class SmartRateLimitService {
   
   // Check if user can make API request
   static async checkUserQuota(userId, apiProvider, requestType) {
     try {
-      // Get user's current usage
-      const { data: userUsage } = await supabase
-        .from('user_usage')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('date', new Date().toISOString().split('T')[0])
-        .eq('api_provider', apiProvider)
-        .single();
-
-      if (!userUsage) {
-        // Create new usage record
-        await this.initializeUserUsage(userId, apiProvider);
-        return { 
-          allowed: true, 
-          remaining: this.getTierLimits('free')[requestType],
-          used: 0,
-          tier: 'free'
-        };
+      // Get user's subscription from SaaS billing service
+      const billingService = new SaaSBillingService();
+      const subscription = await billingService.getUserSubscription(userId);
+      
+      if (!subscription) {
+        throw new Error('No active subscription found');
       }
 
-      const tierLimits = userUsage.tier_limits;
-      const currentUsage = userUsage[`${requestType}_requests`] || 0;
-      const limit = tierLimits[requestType] || 0;
-
+      // Get usage for current billing period
+      const usage = await billingService.getCurrentUsage(userId);
+      const currentUsage = usage.api_calls || 0;
+      
+      // Get subscription plan limits
+      const planLimits = billingService.getPlanLimits(subscription.plan_type);
+      const quotaLimit = planLimits.api_calls_limit;
+      
+      // Check for overage allowance
+      const overageAllowed = ['premium', 'enterprise', 'custom'].includes(subscription.plan_type);
+      const hasQuota = currentUsage < quotaLimit || (overageAllowed && subscription.plan_type === 'custom');
+      
       return {
-        allowed: currentUsage < limit,
-        remaining: Math.max(0, limit - currentUsage),
+        allowed: hasQuota,
+        remaining: Math.max(0, quotaLimit - currentUsage),
         used: currentUsage,
-        limit: limit,
-        tier: userUsage.tier
+        limit: quotaLimit,
+        tier: subscription.plan_type,
+        overageAllowed,
+        subscription_id: subscription.id
       };
     } catch (error) {
       console.error('Error checking user quota:', error);
-      return { allowed: false, error: error.message };
+      return { 
+        allowed: false, 
+        error: error.message,
+        remaining: 0,
+        used: 0,
+        limit: 0,
+        tier: 'free'
+      };
     }
   }
 
@@ -457,6 +463,14 @@ export class SmartRateLimitService {
       await supabase.rpc('increment_system_usage', {
         p_api_provider: apiProvider,
         p_request_type: requestType
+      });
+
+      // Update SaaS billing usage
+      const billingService = new SaaSBillingService();
+      await billingService.trackUsage(userId, 1, {
+        api_provider: apiProvider,
+        request_type: requestType,
+        timestamp: new Date().toISOString()
       });
     } catch (error) {
       console.error('Error updating usage counters:', error);
