@@ -2,6 +2,179 @@
 import { supabase } from '../store/supaStore';
 
 export class SaaSBillingService {
+  // Legacy: get all subscriptions (enriched)
+  static async getAllSubscriptions() {
+    // Fetch all subscriptions
+    const { data: subscriptions } = await supabase.from('subscriptions').select('*');
+    // Fetch all users
+    const { data: users } = await supabase.from('profiles').select('*');
+    // Fetch all usage
+    const { data: usage } = await supabase.from('billing_usage').select('*');
+
+    // Enrich subscriptions for dashboard
+    const enrichedSubscriptions = (subscriptions || []).map(sub => {
+      const user = users?.find(u => u.id === sub.user_id);
+      const usageRow = usage?.find(us => us.subscription_id === sub.id);
+      return {
+        id: sub.id,
+        user_id: sub.user_id,
+        user_email: user?.email || '',
+        plan_type: sub.plan_id,
+        status: sub.status,
+        monthly_revenue: usageRow?.total_amount || 0,
+        next_billing_date: sub.current_period_end || '',
+      };
+    });
+    return enrichedSubscriptions;
+  }
+  // Legacy: get all users (enriched)
+  static async getAllUsers() {
+    // Log session info for RLS troubleshooting
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    console.log('[getAllUsers] Supabase session:', sessionData, 'Session error:', sessionError);
+
+    // Fetch all users
+    const { data: users, error: userError } = await supabase.from('profiles').select('*');
+    console.log('[getAllUsers] users:', users, 'User error:', userError);
+    // Fetch all subscriptions
+    const { data: subscriptions, error: subError } = await supabase.from('subscriptions').select('*');
+    // Fetch all usage
+    const { data: usage, error: usageError } = await supabase.from('billing_usage').select('*');
+
+    // DEBUG: Log all fetched data and errors
+    console.log('[getAllUsers] subscriptions:', subscriptions, 'Sub error:', subError);
+    console.log('[getAllUsers] usage:', usage, 'Usage error:', usageError);
+
+    const enrichedUsers = (users || []).map(u => {
+      // Find any subscription for the user (active or not)
+      const sub = subscriptions?.find(s => s.user_id === u.id);
+      const usageRow = usage?.find(us => us.user_id === u.id);
+      return {
+        id: u.id,
+        email: u.email,
+        full_name: u.full_name,
+        plan_type: sub?.plan_id || u.tier || 'free',
+        current_usage: usageRow?.api_calls_used || 0,
+        usage_limit: sub ? (this.pricingPlans[sub.plan_id]?.monthly_api_calls || 0) : (this.pricingPlans[u.tier]?.monthly_api_calls || 0),
+        lifetime_value: usageRow?.total_amount || 0,
+        status: sub?.status || 'inactive',
+        role: u.role || 'authenticated'
+      };
+    });
+    console.log('[getAllUsers] enrichedUsers:', enrichedUsers);
+    return enrichedUsers;
+  }
+  // Admin overview aggregation for dashboard
+  static async getAdminOverview() {
+    // Fetch all users
+    const { data: users, error: userError } = await supabase.from('profiles').select('*');
+    // Fetch all subscriptions
+    const { data: subscriptions, error: subError } = await supabase.from('subscriptions').select('*');
+    // Fetch all usage
+    const { data: usage, error: usageError } = await supabase.from('billing_usage').select('*');
+
+    // DEBUG LOG: include user role
+    if (users && Array.isArray(users)) {
+      users.forEach(u => {
+        console.log('[getAdminOverview] user:', {
+          id: u.id,
+          email: u.email,
+          role: u.role || '(no role field)'
+        });
+      });
+    }
+
+    // Aggregate plan counts
+    const planCounts = subscriptions?.reduce((acc, sub) => {
+      acc[sub.plan_id] = (acc[sub.plan_id] || 0) + 1;
+      return acc;
+    }, {});
+
+    // Aggregate revenue
+    const totalRevenue = usage?.reduce((sum, u) => sum + (u.total_amount || 0), 0) || 0;
+    // Active subscriptions
+    const activeSubs = subscriptions?.filter(sub => sub.status === 'active') || [];
+
+    // Usage by user
+    const usageByUser = usage?.reduce((acc, u) => {
+      acc[u.user_id] = (acc[u.user_id] || 0) + (u.api_calls_used || 0);
+      return acc;
+    }, {});
+
+    // Revenue by user
+    const revenueByUser = usage?.reduce((acc, u) => {
+      acc[u.user_id] = (acc[u.user_id] || 0) + (u.total_amount || 0);
+      return acc;
+    }, {});
+
+    // Compose overview with frontend-expected fields
+    // Calculate API calls today (filter by today's date)
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const yyyy = today.getFullYear();
+    const todayStr = `${dd}-${mm}-${yyyy}`;
+    const apiCallsToday = usage?.filter(u => u.period_start === todayStr).reduce((sum, u) => sum + (u.api_calls_used || 0), 0) || 0;
+
+    // Calculate new users this month
+    const monthStr = `${yyyy}-${mm}`;
+    const newUsersThisMonth = users?.filter(u => (u.created_at || '').startsWith(monthStr)).length || 0;
+
+    // Calculate average daily calls (simple average over all usage rows)
+    const avgDailyCalls = usage && usage.length > 0 ? Math.round(usage.reduce((sum, u) => sum + (u.api_calls_used || 0), 0) / usage.length) : 0;
+
+    // Dummy revenue growth and daily revenue trend
+    const revenueGrowth = 0; // Implement logic if needed
+    const dailyRevenue = [];
+
+    // Enrich users for dashboard
+    const enrichedUsers = (users || []).map(u => {
+      const sub = subscriptions?.find(s => s.user_id === u.id && s.status === 'active');
+      const usageRow = usage?.find(us => us.user_id === u.id);
+      return {
+        id: u.id,
+        email: u.email,
+        full_name: u.full_name,
+        plan_type: sub?.plan_id || u.tier || 'free',
+        current_usage: usageRow?.api_calls_used || 0,
+        usage_limit: sub ? (this.pricingPlans[sub.plan_id]?.monthly_api_calls || 0) : (this.pricingPlans[u.tier]?.monthly_api_calls || 0),
+        lifetime_value: usageRow?.total_amount || 0,
+        status: sub?.status || 'inactive',
+        role: u.role || 'authenticated'
+      };
+    });
+
+    // Enrich subscriptions for dashboard
+    const enrichedSubscriptions = (subscriptions || []).map(sub => {
+      const user = users?.find(u => u.id === sub.user_id);
+      const usageRow = usage?.find(us => us.subscription_id === sub.id);
+      return {
+        id: sub.id,
+        user_id: sub.user_id,
+        user_email: user?.email || '',
+        plan_type: sub.plan_id,
+        status: sub.status,
+        monthly_revenue: usageRow?.total_amount || 0,
+        next_billing_date: sub.current_period_end || '',
+      };
+    });
+
+    return {
+      total_users: users?.length || 0,
+      active_subscriptions: activeSubs.length,
+      monthly_revenue: totalRevenue,
+      api_calls_today: apiCallsToday,
+      plan_distribution: planCounts || {},
+      new_users_this_month: newUsersThisMonth,
+      revenue_growth: revenueGrowth,
+      avg_daily_calls: avgDailyCalls,
+      daily_revenue: dailyRevenue,
+      users: enrichedUsers,
+      subscriptions: enrichedSubscriptions,
+      usage: usage || [],
+      errors: { userError, subError, usageError }
+    };
+  }
   
   // Pricing plans configuration
   static pricingPlans = {
@@ -148,12 +321,13 @@ export class SaaSBillingService {
       const yyyy = d.getFullYear();
       dateList.push(`${dd}-${mm}-${yyyy}`);
     }
-    // Query all usage rows for user in date range
-    const { data: usageRows } = await supabase
+    console.log('[getUsageAnalytics] userId:', userId, 'dateList:', dateList);
+    const { data: usageRows, error: usageError } = await supabase
       .from('user_usage')
       .select('date, search_requests, booking_requests, tier')
       .eq('user_id', userId)
       .in('date', dateList);
+    console.log('[getUsageAnalytics] usageRows:', usageRows, 'error:', usageError);
 
     // Sum search and booking requests
     const total_calls = usageRows ? usageRows.reduce((sum, u) => sum + (u.search_requests || 0), 0) : 0;
@@ -167,13 +341,13 @@ export class SaaSBillingService {
       calls_growth = last - prev;
     }
 
-    // Get latest billing row for user
-    const { data: billingRows } = await supabase
+    const { data: billingRows, error: billingError } = await supabase
       .from('billing_usage')
       .select('total_amount')
       .eq('user_id', userId)
       .order('period_start', { ascending: false })
       .limit(1);
+    console.log('[getUsageAnalytics] billingRows:', billingRows, 'error:', billingError);
 
     return {
       total_calls,
@@ -202,11 +376,13 @@ export class SaaSBillingService {
       const yyyy = d.getFullYear();
       dateList.push(`${dd}-${mm}-${yyyy}`);
     }
-    const { data: usageRows } = await supabase
+    console.log('[getAPIUsageBreakdown] userId:', userId, 'dateList:', dateList);
+    const { data: usageRows, error: usageError } = await supabase
       .from('user_usage')
       .select('api_provider, search_requests, date')
       .eq('user_id', userId)
       .in('date', dateList);
+    console.log('[getAPIUsageBreakdown] usageRows:', usageRows, 'error:', usageError);
 
     const breakdown = {};
     usageRows?.forEach(row => {

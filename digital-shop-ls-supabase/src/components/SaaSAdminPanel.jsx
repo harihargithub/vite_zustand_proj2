@@ -18,7 +18,7 @@ const SaaSAdminPanel = () => {
     const [selectedUser, setSelectedUser] = useState(null);
     const [showUserModal, setShowUserModal] = useState(false);
 
-    const billingService = new SaaSBillingService();
+    // Remove instance creation; use static methods on SaaSBillingService
 
     useEffect(() => {
         if (user?.id) {
@@ -32,17 +32,17 @@ const SaaSAdminPanel = () => {
             
             switch (activeTab) {
                 case 'overview':
-                    const overview = await billingService.getAdminOverview();
+                    const overview = await SaaSBillingService.getAdminOverview();
                     setAdminData(prev => ({ ...prev, overview }));
                     break;
                     
                 case 'users':
-                    const users = await billingService.getAllUsers();
+                    const users = await SaaSBillingService.getAllUsers();
                     setAdminData(prev => ({ ...prev, users }));
                     break;
-                    
+
                 case 'subscriptions':
-                    const subscriptions = await billingService.getAllSubscriptions();
+                    const subscriptions = await SaaSBillingService.getAllSubscriptions();
                     setAdminData(prev => ({ ...prev, subscriptions }));
                     break;
                     
@@ -192,25 +192,25 @@ const SaaSAdminPanel = () => {
                     <div className="overview-charts">
                         <div className="chart-card">
                             <h3>Plan Distribution</h3>
-                            <div className="plan-distribution">
-                                {Object.entries(adminData.overview.plan_distribution).map(([plan, count]) => (
-                                    <div key={plan} className="plan-item">
-                                        <div className="plan-bar">
-                                            <div 
-                                                className="plan-fill"
-                                                style={{ 
-                                                    width: `${(count / adminData.overview.total_users) * 100}%`,
-                                                    backgroundColor: getPlanColor(plan)
-                                                }}
-                                            ></div>
-                                        </div>
-                                        <div className="plan-info">
-                                            <span className="plan-name">{plan.toUpperCase()}</span>
-                                            <span className="plan-count">{count} users</span>
-                                        </div>
-                                    </div>
-                                ))}
+                    <div className="plan-distribution">
+                        {Object.entries(adminData.overview.plan_distribution || {}).map(([plan, count]) => (
+                            <div key={plan} className="plan-item">
+                                <div className="plan-bar">
+                                    <div 
+                                        className="plan-fill"
+                                        style={{ 
+                                            width: `${(count / adminData.overview.total_users) * 100}%`,
+                                            backgroundColor: getPlanColor(plan)
+                                        }}
+                                    ></div>
+                                </div>
+                                <div className="plan-info">
+                                    <span className="plan-name">{plan.toUpperCase()}</span>
+                                    <span className="plan-count">{count} users</span>
+                                </div>
                             </div>
+                        ))}
+                    </div>
                         </div>
 
                         <div className="chart-card">
