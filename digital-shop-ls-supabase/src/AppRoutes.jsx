@@ -23,8 +23,14 @@ import ResourceDistributionDashboard from './components/ResourceDistributionDash
 import BillingDashboard from './components/BillingDashboard';
 import UsageAnalytics from './components/UsageAnalytics';
 import SaaSAdminPanel from './components/SaaSAdminPanel';
+import { useEffect } from 'react';
+import { useAuthStore } from './store/authStore';
 
 const AppRoutes = () => {
+  useEffect(() => {
+    // Restore user from Supabase session on app load
+    useAuthStore.getState().initialize();
+  }, []);
   return (
     <BotDetectionProvider>
       <BrowserRouter>

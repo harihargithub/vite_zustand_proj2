@@ -7,6 +7,17 @@ import { supabase } from './supaStore'
 let authStore = (set) => ({
   isAuthenticated: false,
   user: null,
+  initialize: async () => {
+    // Try to restore user from Supabase session
+    const { data, error } = await supabase.auth.getUser();
+    if (error || !data?.user) {
+      set({ isAuthenticated: false, user: null });
+      console.log('No active Supabase session');
+    } else {
+      set({ isAuthenticated: true, user: data.user });
+      console.log('Restored user from Supabase session:', data.user);
+    }
+  },
   login: async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {

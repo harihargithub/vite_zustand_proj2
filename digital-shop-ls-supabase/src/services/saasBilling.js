@@ -133,6 +133,109 @@ export class SaaSBillingService {
     }
   }
 
+  // Usage Analytics for dashboard
+  static async getUsageAnalytics(userId, timeRange = '30d') {
+    // Aggregate usage over a time range (default last 30 days)
+    // Supabase data uses DD-MM-YYYY format, so generate date strings accordingly
+    const days = parseInt(timeRange.replace(/\D/g, '')) || 30;
+    const now = new Date();
+    const dateList = [];
+    for (let i = 0; i < days; i++) {
+      const d = new Date(now);
+      d.setDate(now.getDate() - i);
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const yyyy = d.getFullYear();
+      dateList.push(`${dd}-${mm}-${yyyy}`);
+    }
+    // Query all usage rows for user in date range
+    const { data: usageRows } = await supabase
+      .from('user_usage')
+      .select('date, search_requests, booking_requests, tier')
+      .eq('user_id', userId)
+      .in('date', dateList);
+
+    // Sum search and booking requests
+    const total_calls = usageRows ? usageRows.reduce((sum, u) => sum + (u.search_requests || 0), 0) : 0;
+    const total_bookings = usageRows ? usageRows.reduce((sum, u) => sum + (u.booking_requests || 0), 0) : 0;
+    // Growth calculation (compare last day vs previous day)
+    let calls_growth = 0;
+    if (usageRows && usageRows.length > 1) {
+      const sorted = usageRows.sort((a, b) => dateList.indexOf(a.date) - dateList.indexOf(b.date));
+      const last = sorted[0]?.search_requests || 0;
+      const prev = sorted[1]?.search_requests || 0;
+      calls_growth = last - prev;
+    }
+
+    // Get latest billing row for user
+    const { data: billingRows } = await supabase
+      .from('billing_usage')
+      .select('total_amount')
+      .eq('user_id', userId)
+      .order('period_start', { ascending: false })
+      .limit(1);
+
+    return {
+      total_calls,
+      total_bookings,
+      calls_growth,
+      total_cost: billingRows?.[0]?.total_amount || 0,
+      cost_growth: 0,
+      avg_response_time: 100, // Placeholder
+      response_time_change: 0,
+      success_rate: 100, // Placeholder
+      success_rate_change: 0,
+      daily_usage: usageRows ? usageRows.map(u => ({ date: u.date, calls: u.search_requests })) : []
+    };
+  }
+
+  static async getAPIUsageBreakdown(userId, timeRange = '30d') {
+    // Aggregate breakdown by provider over time range
+    const days = parseInt(timeRange.replace(/\D/g, '')) || 30;
+    const now = new Date();
+    const dateList = [];
+    for (let i = 0; i < days; i++) {
+      const d = new Date(now);
+      d.setDate(now.getDate() - i);
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const yyyy = d.getFullYear();
+      dateList.push(`${dd}-${mm}-${yyyy}`);
+    }
+    const { data: usageRows } = await supabase
+      .from('user_usage')
+      .select('api_provider, search_requests, date')
+      .eq('user_id', userId)
+      .in('date', dateList);
+
+    const breakdown = {};
+    usageRows?.forEach(row => {
+      if (!breakdown[row.api_provider]) {
+        breakdown[row.api_provider] = { calls: 0, cost: 0, avg_time: 100, success_rate: 100 };
+      }
+      breakdown[row.api_provider].calls += row.search_requests || 0;
+    });
+    return breakdown;
+  }
+
+  static async getUsagePredictions(userId) {
+    // Example: stub predictions
+    return {
+      month_prediction: 1,
+      next_month_prediction: 2,
+      estimated_cost: 0,
+      month_confidence: 100,
+      next_month_confidence: 100,
+      overage_risk: 0
+    };
+  }
+
+  static async getUsageAlerts(userId) {
+    // Example: stub alerts
+    return [];
+  }
+
+
   // Record billable usage
   static async recordBillableUsage(userId, apiProvider, requestType, cost = 0) {
     try {

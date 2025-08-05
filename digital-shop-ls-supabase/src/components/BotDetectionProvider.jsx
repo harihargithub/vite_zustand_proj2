@@ -54,7 +54,7 @@ export const BotDetectionProvider = ({ children }) => {
       requestsToday: prev.requestsToday + 1,
       ...(requestData.blocked && { blockedToday: prev.blockedToday + 1 }),
       ...(requestData.suspicious_score >= 50 && { suspiciousToday: prev.suspiciousToday + 1 }),
-      ...(requestData.is_proxy && { proxyDetected: prev.proxyDetected + 1 })
+    //   ...(requestData.is_proxy && { proxyDetected: prev.proxyDetected + 1 })
     }));
   };
 
@@ -65,14 +65,14 @@ export const BotDetectionProvider = ({ children }) => {
 
       const { data: todayRequests } = await supabase
         .from('request_tracking')
-        .select('blocked, suspicious_score, is_proxy')
+        .select('blocked, suspicious_score')
         .gte('timestamp', today.toISOString());
 
       if (todayRequests) {
         const requestsToday = todayRequests.length;
         const blockedToday = todayRequests.filter(r => r.blocked).length;
         const suspiciousToday = todayRequests.filter(r => r.suspicious_score >= 50).length;
-        const proxyDetected = todayRequests.filter(r => r.is_proxy).length;
+        const proxyDetected = 0;
 
         setStats({
           requestsToday,

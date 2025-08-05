@@ -1,19 +1,21 @@
 // src/components/UsageAnalytics.jsx
 import React, { useState, useEffect } from 'react';
-import { SaaSBillingService } from '../services/saasBilling';
+import SaaSBillingService from '../services/saasBilling';
 import { useAuthStore } from '../store/authStore';
 import './UsageAnalytics.css';
 
 const UsageAnalytics = () => {
     const { user } = useAuthStore();
+    console.log('User in render:', user);
     const [loading, setLoading] = useState(true);
     const [timeRange, setTimeRange] = useState('30d');
     const [usageData, setUsageData] = useState(null);
     const [breakdown, setBreakdown] = useState(null);
     const [predictions, setPredictions] = useState(null);
     const [alerts, setAlerts] = useState([]);
+    const [errorMsg, setErrorMsg] = useState('');
 
-    const billingService = new SaaSBillingService();
+    // Use static methods directly
 
     useEffect(() => {
         if (user?.id) {
@@ -24,25 +26,35 @@ const UsageAnalytics = () => {
     const loadUsageAnalytics = async () => {
         try {
             setLoading(true);
-
+            setErrorMsg('');
+            console.log('User object:', user);
+            if (!user?.id) {
+                setErrorMsg('User not authenticated.');
+                return;
+            }
             // Get usage data for selected time range
-            const usage = await billingService.getUsageAnalytics(user.id, timeRange);
+            const usage = await SaaSBillingService.getUsageAnalytics(user.id, timeRange);
+            console.log('Usage data:', usage);
             setUsageData(usage);
 
             // Get API breakdown
-            const apiBreakdown = await billingService.getAPIUsageBreakdown(user.id, timeRange);
+            const apiBreakdown = await SaaSBillingService.getAPIUsageBreakdown(user.id, timeRange);
+            console.log('API breakdown:', apiBreakdown);
             setBreakdown(apiBreakdown);
 
             // Get usage predictions
-            const predictionData = await billingService.getUsagePredictions(user.id);
+            const predictionData = await SaaSBillingService.getUsagePredictions(user.id);
+            console.log('Predictions:', predictionData);
             setPredictions(predictionData);
 
             // Check for usage alerts
-            const alertData = await billingService.getUsageAlerts(user.id);
+            const alertData = await SaaSBillingService.getUsageAlerts(user.id);
+            console.log('Alerts:', alertData);
             setAlerts(alertData);
 
         } catch (error) {
             console.error('Error loading usage analytics:', error);
+            setErrorMsg('Error loading usage analytics: ' + error.message);
         } finally {
             setLoading(false);
         }
@@ -75,6 +87,13 @@ const UsageAnalytics = () => {
             <div className="usage-analytics loading">
                 <div className="loading-spinner"></div>
                 <p>Loading usage analytics...</p>
+            </div>
+        );
+    }
+    if (errorMsg) {
+        return (
+            <div className="usage-analytics error">
+                <p style={{ color: 'red' }}>{errorMsg}</p>
             </div>
         );
     }

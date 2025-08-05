@@ -64,8 +64,8 @@ const BotDetectionDashboard = () => {
       } else if (filter === 'blocked') {
         query = query.eq('blocked', true);
       } else if (filter === 'proxies') {
-        query = query.eq('is_proxy', true);
-      }
+/*         query = query.eq('is_proxy', true);
+ */      }
 
       const { data: requestData, error } = await query;
 
@@ -76,14 +76,14 @@ const BotDetectionDashboard = () => {
       // Calculate stats
       const allRequests = await supabase
         .from('request_tracking')
-        .select('suspicious_score, blocked, is_proxy')
+        .select('suspicious_score, blocked')
         .gte('timestamp', startTime.toISOString());
 
       if (allRequests.data) {
         const total = allRequests.data.length;
         const suspicious = allRequests.data.filter(r => r.suspicious_score >= 50).length;
         const blocked = allRequests.data.filter(r => r.blocked).length;
-        const proxies = allRequests.data.filter(r => r.is_proxy).length;
+        const proxies = 0;
 
         setStats({ total, suspicious, blocked, proxies });
       }
@@ -283,7 +283,7 @@ const BotDetectionDashboard = () => {
                   </td>
                   <td className="ip-address">
                     {request.ip_address}
-                    {request.is_proxy && <span className="proxy-badge">PROXY</span>}
+                    {/* {request.is_proxy && <span className="proxy-badge">PROXY</span>} */}
                   </td>
                   <td className="endpoint">{request.endpoint}</td>
                   <td className="user-agent" title={request.user_agent}>
