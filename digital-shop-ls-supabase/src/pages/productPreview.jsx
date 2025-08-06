@@ -23,7 +23,7 @@ const ProductPreview = () => {
     setIsLoading(true);
     try {
       const { data: productData, error: productError } = await SupaBase
-        .from("products")
+        .from("shop.products")
         .select()
         .eq("id", params.id);
 

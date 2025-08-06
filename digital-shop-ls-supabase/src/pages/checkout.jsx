@@ -151,7 +151,7 @@ const ShippingForm = () => {
     const products = JSON.stringify(items);
     const total = getCartTotal(items);
     const { data: orderData, error: orderError } = await supabase
-      .from("order")
+      .from("shop.order")
       .insert({
         total,
         address,

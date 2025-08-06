@@ -108,7 +108,7 @@ const ProductAdd = () => {
       
       if (productName && productPrice && productThumbnail && productDetails && productOffering) {
         const { data: newProduct, error: productError } = await SupaBase
-          .from("products")
+          .from("shop.products")
           .insert({
             product_name: productName,
             product_price: productPrice,

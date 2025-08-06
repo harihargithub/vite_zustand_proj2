@@ -18,7 +18,7 @@ const useProducts = () => {
         const { session } = userData;
 
         const { data: productData, error: productError } = await SupaBase
-          .from("products")
+          .from("shop.products")
           .select()
           .eq("user_id", session?.user?.id);
 
