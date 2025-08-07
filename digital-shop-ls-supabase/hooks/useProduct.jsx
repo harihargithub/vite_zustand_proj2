@@ -18,10 +18,11 @@ const useProducts = () => {
         const { session } = userData;
 
         const { data: productData, error: productError } = await SupaBase
-          .from("shop.products")
+          .schema("shop") // <-- explicitly set schema
+          .from("products")
           .select()
           .eq("user_id", session?.user?.id);
-
+        console.log("Current user ID:", session?.user?.id);
         if (productError) throw productError;
 
         setProductsList(productData);
