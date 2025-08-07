@@ -58,35 +58,42 @@ const ProductEdit = () => {
     fetchProduct();
   }, [id]);
 
-  const handleClick = async () => {
-  const productDetails = productDescriptionRef.current.value;
-  const { error } = await SupaBase
-    .schema("shop") // <-- explicitly set schema
-    .from('products')
-    .update({
-      product_name: productName,
-      product_price: productPrice,
-      product_thumbnail: productThumbnail,
-      product_offering: productOffering,
-      product_details: productDetails,
-    })
-    .eq('id', id);
-
-  if (error) {
-    console.error('Error updating product:', error);
-    setToast({
-      show: true,
-      message: 'Error updating product',
-      type: 'error',
-    });
-  } else {
-    setToast({
-      show: true,
-      message: 'Product updated successfully',
-      type: 'success',
-    });
-  }
-};
+    const handleClick = async () => {
+    const productDetails = productDescriptionRef.current.value;
+    const { data, error } = await SupaBase
+      .schema("shop")
+      .from('products')
+      .update({
+        product_name: productName,
+        product_price: productPrice,
+        product_thumbnail: productThumbnail,
+        product_offering: productOffering,
+        product_details: productDetails,
+      })
+      .eq('id', id)
+      .select(); // This returns updated rows
+  
+    if (error) {
+      console.error('Error updating product:', error);
+      setToast({
+        show: true,
+        message: 'Error updating product',
+        type: 'error',
+      });
+    } else if (data && data.length > 0) {
+      setToast({
+        show: true,
+        message: 'Product updated successfully',
+        type: 'success',
+      });
+    } else {
+      setToast({
+        show: true,
+        message: 'You are not allowed to update this product.',
+        type: 'error',
+      });
+    }
+  };
 
   return (
   <div>
