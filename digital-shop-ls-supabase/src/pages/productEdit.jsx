@@ -28,7 +28,8 @@ const ProductEdit = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       const { data, error } = await supabase
-        .from('products')
+        .schema("shop") // <-- explicitly set schema
+        .from("products")
         .select('*')
         .eq('id', id)
         .single();
@@ -60,6 +61,7 @@ const ProductEdit = () => {
   const handleClick = async () => {
   const productDetails = productDescriptionRef.current.value;
   const { error } = await SupaBase
+    .schema("shop") // <-- explicitly set schema
     .from('products')
     .update({
       product_name: productName,

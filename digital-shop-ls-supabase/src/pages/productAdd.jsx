@@ -78,7 +78,7 @@ const ProductAdd = () => {
       if (session?.user?.id) {
         const { data: userRole, error: roleError } = await SupaBase
           .from('user_roles')
-          .select('role')
+          .select('role_name')
           .eq('user_id', session.user.id)
           .single();
 
@@ -108,7 +108,8 @@ const ProductAdd = () => {
       
       if (productName && productPrice && productThumbnail && productDetails && productOffering) {
         const { data: newProduct, error: productError } = await SupaBase
-          .from("shop.products")
+          .schema("shop") // <-- explicitly set schema 
+          .from("products")
           .insert({
             product_name: productName,
             product_price: productPrice,
